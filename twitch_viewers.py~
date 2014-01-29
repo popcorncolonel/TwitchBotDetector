@@ -50,4 +50,3 @@ def user_viewers(user):
         print str(userdata['status']) + " " + userdata['message'] + " " + userdata['error']
         print user + " is not live right now, or the API is down."
         return 0
-
