@@ -86,7 +86,7 @@ def send_tweet(user, ratio, game, viewers):
             tweet = name + " (playing " + game_tweet + ") may have a false-viewer bot. (~" + str(viewers - chatters) + " extra viewers)"
             if (ratio < 0.15):
                 tweet = name + " (playing " + game_tweet + ") appears to have a false-viewer bot. (~" + str(viewers - chatters) + " extra viewers)"
-            elif (ratio < 0.10):
+            if (ratio < 0.10):
                 tweet = name + " (playing " + game_tweet + ") almost definitely has a false-viewer bot. (~" + str(viewers - chatters) + " extra viewers)"
             if (len(tweet) + 2 + len(originame) <= 140): #max characters in a tweet
                 tweet = tweet + " #" + originame
