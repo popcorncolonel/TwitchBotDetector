@@ -34,14 +34,14 @@ exceptions = ["destiny", "scglive", "xbox"]
 def user_chatters(user):
     chatters = 0
     req = requests.get("http://tmi.twitch.tv/group/user/" + user)
-    while (chatters == 0):
-        try:
-            while (req.status_code != 200):
-                req = requests.get("http://tmi.twitch.tv/group/user/" + user)
-            chat_data = req.json()
-            chatters = chat_data['chatter_count']
-        except TypeError:
-            pass
+    try:
+        while (req.status_code != 200):
+            req = requests.get("http://tmi.twitch.tv/group/user/" + user)
+        chat_data = req.json()
+        chatters = chat_data['chatter_count']
+    except TypeError:
+        print "recursing, got some kinda error"
+        user_chatters(user)
     return chatters
 
 def user_ratio(user):
@@ -61,7 +61,7 @@ def user_ratio(user):
 suspicious = []
 num_suspicious = 0 #wait this isn't necessary - just do len(suspicious) i'm too used to C
 user_threshold = 200
-ratio_threshold = 0.20 #if false positives, lower this number. if false negatives, raise this number
+ratio_threshold = 0.17 #if false positives, lower this number. if false negatives, raise this number
 
 
 def send_tweet(user, ratio, game, viewers):
@@ -78,11 +78,18 @@ def send_tweet(user, ratio, game, viewers):
             chatters = user_chatters(originame) # eventually do someone more intelligent than chatters, take into account the average game ratio and calculate the expected number of viewers
             game_tweet = game.split(":")[0]
             if (game_tweet == "Call of Duty" and len(game.split(":")) > 1):
-                game_tweet = "CoD: " + game.split(":")[1]
-            if (game_tweet == "Counter-Strike"):
-                game_tweet = "CS: "
-                for item in game.split(" "): #abbreviate, aka CoD: Ghosts, CS:GO
-                    game_tweet += item[0] #first initial
+                game_tweet = "CoD:" + game.split(":")[1]
+            if (game_tweet == "Counter-Strike" and len(game.split(":")) > 1):
+                game_tweet = "CS: " #i dont think this works
+                for item in game.split(":")[1].split(" "): 
+                    if (len(item) > 0):
+                        game_tweet += item[0] #first initial
+            if (game_tweet == "StarCraft II" and len(game.split(":")) > 1):
+                game_tweet = "SC2: "
+                for item in game.split(":")[1].split(" "):
+                    if (len(item) > 0):
+                        game_tweet += item[0] #first initial
+            #SC2
             tweet = name + " (playing " + game_tweet + ") may have a false-viewer bot. (~" + str(viewers - chatters) + " extra viewers)"
             if (ratio < 0.15):
                 tweet = name + " (playing " + game_tweet + ") appears to have a false-viewer bot. (~" + str(viewers - chatters) + " extra viewers)"
@@ -130,7 +137,7 @@ def game_ratio(game):
                 ratio = user_ratio(user)
             for item in suspicious:
                 if (item[0] == name):
-                    if (ratio > ratio_threshold):
+                    if (ratio > 2 * ratio_threshold):
                         suspicious.remove(item)
                         game = item[2]
                         tweet = name + " (playing " + game + ") appears to have a false-viewer bot"
@@ -172,7 +179,8 @@ def remove_offline():
                     id = statuses[i]['id']
                     print "Destroying tweet ", id
                     print "With text "+tweet
-                    api.destroy_status(id)
+                    if (delete):
+                        api.destroy_status(id)
             else:
                 errlog.write("Something went wrong.\n")
                 errlog.write("searched for: "+ tweet + "\nBut didn't find it.\n")
