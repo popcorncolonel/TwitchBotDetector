@@ -1,6 +1,11 @@
 Go to http://www.twitter.com/BotDetectorBot!
 
 TODO:
+0) Separate the suspicious list into "suspicious" and "confirmed", first
+checking if the user is under the threshold, then the second time it checks
+around, "confrirm" the user and tweet. This helps with viewer/ratio accuracy
+and edge cases with people just starting up their stream. 
+
 1) Detect when the server is returning a lot of 502/503 errors, switch to a
 different method of counting chat users. AKA connecting directly to the IRC's
 and count using the WHO/NAMES commands.
