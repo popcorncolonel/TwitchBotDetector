@@ -28,18 +28,20 @@ auth.set_access_token(OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
 api = tweepy.API(auth)
 
 # these users are known to have small chat to viewer ratios for valid reasons
-# example: chat disabled, or chat hosten not on the twitch site
-exceptions = ["destiny", "scglive", "xbox"]
+# example: chat disabled, or chat hosted not on the twitch site
+exceptions = ["destiny", "scglive", "xbox", "empiretvorg", "giantbomb", "defrancogames"]
 
 def user_chatters(user):
     chatters = 0
     req = requests.get("http://tmi.twitch.tv/group/user/" + user)
     try:
         while (req.status_code != 200):
+            print req.status_code
             req = requests.get("http://tmi.twitch.tv/group/user/" + user)
         chat_data = req.json()
         chatters = chat_data['chatter_count']
     except TypeError:
+        print "recursing, got some kinda error"
         user_chatters(user)
     return chatters
 
@@ -69,31 +71,34 @@ def send_tweet(user, ratio, game, viewers):
         found = 0
         for item in suspicious:
             if item[0] == name:
+                item[1] = ratio #update the ratio each time
+                item[2] = game
                 found = 1
         if not found:
             print "Tweeting!"
             suspicious.append([name, ratio, game])
             originame = name[21:]
             chatters = user_chatters(originame) # eventually do someone more intelligent than chatters, take into account the average game ratio and calculate the expected number of viewers
-            game_tweet = game.split(":")[0]
+            game_tweet = game.split(":")[0] #manually shorten the tweet, many of them by inspection
+            if (game_tweet == "League of Legends"):
+                game_tweet = "LoL"
             if (game_tweet == "Call of Duty" and len(game.split(":")) > 1):
                 game_tweet = "CoD:" + game.split(":")[1]
             if (game_tweet == "Counter-Strike" and len(game.split(":")) > 1):
-                game_tweet = "CS: " #i dont think this works
+                game_tweet = "CS: " 
                 for item in game.split(":")[1].split(" "): 
                     if (len(item) > 0):
-                        game_tweet += item[0] #first initial
+                        game_tweet += item[0] #first initial - CS:S, CS:GO
             if (game_tweet == "StarCraft II" and len(game.split(":")) > 1):
                 game_tweet = "SC2: "
                 for item in game.split(":")[1].split(" "):
                     if (len(item) > 0):
-                        game_tweet += item[0] #first initial
-            #SC2
+                        game_tweet += item[0] #first initial - SC2: LotV
             tweet = name + " (playing " + game_tweet + ") may have a false-viewer bot. (~" + str(viewers - chatters) + " extra viewers)"
             if (ratio < 0.15):
                 tweet = name + " (playing " + game_tweet + ") appears to have a false-viewer bot. (~" + str(viewers - chatters) + " extra viewers)"
             if (ratio < 0.10):
-                tweet = name + " (playing " + game_tweet + ") almost definitely has a false-viewer bot. (~" + str(viewers - chatters) + " extra viewers)"
+                tweet = name + " (playing " + game_tweet + ") almost definitely has a false-viewer bot. (~" + str(viewers - chatters) + " extra viewers of "+ str(viewers) + " total)"
             if (len(tweet) + 2 + len(originame) <= 140): #max characters in a tweet
                 tweet = tweet + " #" + originame
             print("tweeting: '" + tweet + "'")
@@ -108,7 +113,11 @@ def send_tweet(user, ratio, game, viewers):
 
 def game_ratio(game):
 
-    r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
+    try:
+        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
+    except:
+        print "uh oh caught exception when connecting. try again. see game_ratio(game)."
+        game_ratio(game)
     while (r.status_code != 200):
         print r.status_code, ", service unavailable"
         r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)

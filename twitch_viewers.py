@@ -30,6 +30,8 @@ def user_viewers(user):
             print ("bad error. retry?\n")
             errlog.write("bad error. retry?\n")
             pass
+        if not req:
+            print "infinite loop? check here."
     while (req.status_code != 200):
         print (req.status_code + " viewerlist unavailable")
         errlog.write(req.status_code + " viewerlist unavailable")
