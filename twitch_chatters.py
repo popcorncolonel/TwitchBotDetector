@@ -94,11 +94,12 @@ def send_tweet(user, ratio, game, viewers):
                 for item in game.split(":")[1].split(" "):
                     if (len(item) > 0):
                         game_tweet += item[0] #first initial - SC2: LotV
-            tweet = name + " (playing " + game_tweet + ") may have a false-viewer bot. (~" + str(viewers - chatters) + " extra viewers)"
+            estimate = "(~" + str(viewers - chatters) + " extra viewers of "+ str(viewers) + " total)"
+            tweet = name + " (playing " + game_tweet + ") may have a false-viewer bot " + estimate
             if (ratio < 0.15):
-                tweet = name + " (playing " + game_tweet + ") appears to have a false-viewer bot. (~" + str(viewers - chatters) + " extra viewers)"
+                tweet = name + " (playing " + game_tweet + ") appears to have a false-viewer bot " + estimate
             if (ratio < 0.10):
-                tweet = name + " (playing " + game_tweet + ") almost definitely has a false-viewer bot. (~" + str(viewers - chatters) + " extra viewers of "+ str(viewers) + " total)"
+                tweet = name + " (playing " + game_tweet + ") almost definitely has a false-viewer bot " + estimate
             if (len(tweet) + 2 + len(originame) <= 140): #max characters in a tweet
                 tweet = tweet + " #" + originame
             print("tweeting: '" + tweet + "'")
