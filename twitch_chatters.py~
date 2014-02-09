@@ -6,6 +6,7 @@ from twitch_viewers import removeNonAscii
 from twython import Twython
 import tweepy
 from get_passwords import get_passwords
+from time import gmtime, strftime
 
 #delete tweets if someone stopped streaming?
 delete = 0
@@ -29,14 +30,14 @@ api = tweepy.API(auth)
 
 # these users are known to have small chat to viewer ratios for valid reasons
 # example: chat disabled, or chat hosted not on the twitch site
-exceptions = ["destiny", "scglive", "xbox", "empiretvorg", "giantbomb", "defrancogames"]
+exceptions = ["destiny", "scglive", "xbox", "empiretvorg", "giantbomb", "defrancogames", "wellplayedsc2"]
 
 def user_chatters(user):
     chatters = 0
     req = requests.get("http://tmi.twitch.tv/group/user/" + user)
     try:
         while (req.status_code != 200):
-            print req.status_code
+            print "_" + str(req.status_code) + " - " + strftime("%b %d %H:%M:%S", gmtime()) + "_"
             req = requests.get("http://tmi.twitch.tv/group/user/" + user)
         chat_data = req.json()
         chatters = chat_data['chatter_count']
@@ -63,7 +64,7 @@ suspicious = []
 num_suspicious = 0 #wait this isn't necessary - just do len(suspicious) i'm too used to C
 user_threshold = 200
 ratio_threshold = 0.17 #if false positives, lower this number. if false negatives, raise this number
-
+expected_ratio = 0.7 #eventually tailor this to each game/channel. Tailoring to channel may be hard.
 
 def send_tweet(user, ratio, game, viewers):
     name = "http://www.twitch.tv/" + user
@@ -78,7 +79,7 @@ def send_tweet(user, ratio, game, viewers):
             print "Tweeting!"
             suspicious.append([name, ratio, game])
             originame = name[21:]
-            chatters = user_chatters(originame) # eventually do someone more intelligent than chatters, take into account the average game ratio and calculate the expected number of viewers
+            chatters = user_chatters(originame) # eventually do something more intelligent than chatters, take into account the average game ratio and calculate the expected number of viewers
             game_tweet = game.split(":")[0] #manually shorten the tweet, many of them by inspection
             if (game_tweet == "League of Legends"):
                 game_tweet = "LoL"
@@ -94,12 +95,14 @@ def send_tweet(user, ratio, game, viewers):
                 for item in game.split(":")[1].split(" "):
                     if (len(item) > 0):
                         game_tweet += item[0] #first initial - SC2: LotV
-            estimate = "(~" + str(viewers - chatters) + " extra viewers of "+ str(viewers) + " total)"
-            tweet = name + " (playing " + game_tweet + ") may have a false-viewer bot " + estimate
+            #TODO: change expected_ratio to be each game
+            fake_viewers = int(viewers - (1 / expected_ratio) * chatters)
+            estimate = "(~" + str(fake_viewers) + " extra viewers of "+ str(viewers) + " total)"
+            tweet = name + " (" + game_tweet + ") may have a false-viewer bot " + estimate
             if (ratio < 0.15):
-                tweet = name + " (playing " + game_tweet + ") appears to have a false-viewer bot. (~" + str(viewers - chatters) + " extra viewers)"
+                tweet = name + " (" + game_tweet + ") appears to have a false-viewer bot " + estimate
             if (ratio < 0.10):
-                tweet = name + " (playing " + game_tweet + ") almost definitely has a false-viewer bot " + estimate
+                tweet = name + " (" + game_tweet + ") almost definitely has a false-viewer bot " + estimate
             if (len(tweet) + 2 + len(originame) <= 140): #max characters in a tweet
                 tweet = tweet + " #" + originame
             print("tweeting: '" + tweet + "'")

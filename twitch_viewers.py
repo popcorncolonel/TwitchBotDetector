@@ -23,19 +23,23 @@ while flag: #jank bugfix - sometimes can't read json
 def user_viewers(user):
     errlog = open('errlog.txt', 'w')
     req = 0
-    while (not req):
-        try: 
-            req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
-        except requests.exceptions.ConnectionError:
-            print ("bad error. retry?\n")
-            errlog.write("bad error. retry?\n")
-            pass
-        if not req:
-            print "infinite loop? check here."
-    while (req.status_code != 200):
-        print (req.status_code + " viewerlist unavailable")
-        errlog.write(req.status_code + " viewerlist unavailable")
+    try: 
         req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
+    except:
+        print ("bad error. retry?\n")
+        errlog.write("bad error. retry?\n")
+        pass
+    if not req:
+        print "infinite loop? check here."
+        user_viewers(user)
+    while (req.status_code != 200):
+        if (type(req) == int):
+            print req
+            print 'wat. line 38 twich_viewers'
+        else:
+            print (str(req.status_code) + " viewerlist unavailable")
+            errlog.write(str(req.status_code) + " viewerlist unavailable")
+            req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
     try:
         userdata = req.json()
     except ValueError:
