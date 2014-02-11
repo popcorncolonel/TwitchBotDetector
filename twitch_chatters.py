@@ -95,13 +95,13 @@ def send_tweet(user, ratio, game, viewers):
                 for item in game.split(":")[1].split(" "):
                     if (len(item) > 0):
                         game_tweet += item[0] #first initial - SC2: LotV
-            #TODO: change expected_ratio to be each game
+            #TODO: change expected_ratio to be each game - is this a good idea? avg skewed by botting viewers...
             fake_viewers = int(viewers - (1 / expected_ratio) * chatters)
             estimate = "(~" + str(fake_viewers) + " extra viewers of "+ str(viewers) + " total)"
             tweet = name + " (" + game_tweet + ") may have a false-viewer bot " + estimate
             if (ratio < 0.15):
                 tweet = name + " (" + game_tweet + ") appears to have a false-viewer bot " + estimate
-            if (ratio < 0.10):
+            if (ratio < 0.09):
                 tweet = name + " (" + game_tweet + ") almost definitely has a false-viewer bot " + estimate
             if (len(tweet) + 2 + len(originame) <= 140): #max characters in a tweet
                 tweet = tweet + " #" + originame
