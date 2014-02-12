@@ -30,7 +30,7 @@ api = tweepy.API(auth)
 
 # these users are known to have small chat to viewer ratios for valid reasons
 # example: chat disabled, or chat hosted not on the twitch site
-exceptions = ["destiny", "scglive", "xbox", "empiretvorg", "giantbomb", "defrancogames", "wellplayedsc2"]
+exceptions = get_exceptions()
 
 def user_chatters(user):
     chatters = 0
@@ -95,7 +95,7 @@ def send_tweet(user, ratio, game, viewers):
                 for item in game.split(":")[1].split(" "):
                     if (len(item) > 0):
                         game_tweet += item[0] #first initial - SC2: LotV
-            #TODO: change expected_ratio to be each game - is this a good idea? skewed by botting viewers...
+            #TODO: change expected_ratio to be each game - is this a good idea? avg skewed by botting viewers...
             fake_viewers = int(viewers - (1 / expected_ratio) * chatters)
             estimate = "(~" + str(fake_viewers) + " extra viewers of "+ str(viewers) + " total)"
             tweet = name + " (" + game_tweet + ") may have a false-viewer bot " + estimate

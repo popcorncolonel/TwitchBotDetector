@@ -5,8 +5,9 @@ from twitch_viewers import user_viewers
 from twitch_viewers import removeNonAscii
 from twython import Twython
 import tweepy
-from get_passwords import get_passwords
 from time import gmtime, strftime
+from get_passwords import get_passwords
+from get_exceptions import get_exceptions
 
 #delete tweets if someone stopped streaming?
 delete = 0
@@ -30,7 +31,7 @@ api = tweepy.API(auth)
 
 # these users are known to have small chat to viewer ratios for valid reasons
 # example: chat disabled, or chat hosted not on the twitch site
-exceptions = ["destiny", "scglive", "xbox", "empiretvorg", "giantbomb", "defrancogames", "wellplayedsc2"]
+exceptions = get_exceptions()
 
 def user_chatters(user):
     chatters = 0

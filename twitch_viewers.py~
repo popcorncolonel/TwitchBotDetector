@@ -22,8 +22,8 @@ while flag: #jank bugfix - sometimes can't read json
 
 def user_viewers(user):
     req = 0
+    req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
     try: 
-        req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
     except:
         print ("bad error. retry?\n")
         pass
@@ -31,7 +31,7 @@ def user_viewers(user):
         print "infinite loop? check here."
     if (type(req) == int):
         print req
-        print "wat. line 35 twitcH_viewers"
+        print "wat. line 35 twitch_viewers"
     while (req.status_code != 200):
         print (str(req.status_code) + " viewerlist unavailable")
         req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
