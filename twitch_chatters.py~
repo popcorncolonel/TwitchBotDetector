@@ -5,8 +5,9 @@ from twitch_viewers import user_viewers
 from twitch_viewers import removeNonAscii
 from twython import Twython
 import tweepy
-from get_passwords import get_passwords
 from time import gmtime, strftime
+from get_passwords import get_passwords
+from get_exceptions import get_exceptions
 
 #delete tweets if someone stopped streaming?
 delete = 0

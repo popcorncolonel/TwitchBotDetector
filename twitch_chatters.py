@@ -30,7 +30,7 @@ auth.set_access_token(OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
 api = tweepy.API(auth)
 
 # these users are known to have small chat to viewer ratios for valid reasons
-# example: chat disabled, or chat hosted not on the twitch site
+# example: chat disabled, or chat hosted not on the twitch site, or mainly viewed on front page of twitch
 exceptions = get_exceptions()
 
 def user_chatters(user):
