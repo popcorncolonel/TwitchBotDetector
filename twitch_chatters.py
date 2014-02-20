@@ -38,7 +38,7 @@ def user_chatters(user):
     req = requests.get("http://tmi.twitch.tv/group/user/" + user)
     try:
         while (req.status_code != 200):
-            print "_" + str(req.status_code) + " - " + strftime("%b %d %H:%M:%S", gmtime()) + "_"
+            print "_TMI error " + str(req.status_code) + " - " + strftime("%b %d %H:%M:%S", gmtime()) + "_"
             req = requests.get("http://tmi.twitch.tv/group/user/" + user)
         chat_data = req.json()
         chatters = chat_data['chatter_count']
@@ -48,6 +48,7 @@ def user_chatters(user):
     return chatters
 
 def user_ratio(user):
+    exceptions = get_exceptions()
     if (user in exceptions):
         print user + " is alright :)"
         return 1
