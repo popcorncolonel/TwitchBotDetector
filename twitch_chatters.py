@@ -200,7 +200,7 @@ def remove_offline():
 
 #ratio = 0
 def search_all_games():
-
+    topdata = topreq.json()
     for i in range(0,len(topdata['top'])):
         game = removeNonAscii(topdata['top'][i]['game']['name'])
         print "__" + game + "__"
@@ -219,10 +219,10 @@ def search_all_games():
         print
         print
 
-req = requests.get("https://api.twitch.tv/kraken/games/top")
-while (req.status_code != 200):
-    req = requests.get("https://api.twitch.tv/kraken/games/top")
-topdata = req.json()
+topreq = requests.get("https://api.twitch.tv/kraken/games/top")
+while (topreq.status_code != 200):
+    topreq = requests.get("https://api.twitch.tv/kraken/games/top")
+topdata = topreq.json()
 
 while 1:
     search_all_games()
