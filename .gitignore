@@ -1,3 +1,4 @@
+*~
 *.pyc
 *.py~
 *passw*
@@ -6,3 +7,4 @@
 *pass_info*
 *get_exceptions*
 *errlog*
+.gitignore~

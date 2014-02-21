@@ -40,12 +40,12 @@ def user_chatters(user):
     try:
         while (req.status_code != 200):
             print "----TMI error", str(req.status_code), "-", strftime("%b %d %H:%M:%S", gmtime()) + "----"
-            chatters2 = chat_count(user)
-            if (chatters2 != 1):
-                print "returning %d via module" %chatters2
-                return chatters2
-            else:
-                print "(My module got 0 for %s =| )" %user
+            #chatters2 = chat_count(user)
+            #if (chatters2 > 3):
+            #    print "returning %d via module" %chatters2
+            #    return chatters2
+            #else:
+            #    print "(My module got 0 for %s =| )" %user
             req = requests.get("http://tmi.twitch.tv/group/user/" + user)
         chat_data = req.json()
         chatters = chat_data['chatter_count']
@@ -60,12 +60,12 @@ def user_ratio(user):
         print user, "is alright :)"
         return 1
     chatters = user_chatters(user)
-    chatters2 = chat_count(user)
+    #chatters2 = chat_count(user)
     viewers = user_viewers(user)
     if (viewers != 0):
         ratio = float(chatters) / viewers
-        print user + ": " + str(chatters) + " / " + str(viewers) + " = %0.3f" %ratio,
-        print "(%d from module)" %chatters2
+        print user + ": " + str(chatters) + " / " + str(viewers) + " = %0.3f" %ratio#,
+        #print "(%d from module)" %chatters2
     else: 
         return 1 # user is offline
 

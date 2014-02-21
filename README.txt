@@ -19,11 +19,7 @@ checking if the user is under the threshold, then the second time it checks
 around, "confrirm" the user and tweet. This helps with viewer/ratio accuracy
 and edge cases with people just starting up their stream. 
 
-1) Detect when the server is returning a lot of 502/503 errors, switch to a
-different method of counting chat users. AKA connecting directly to the IRC's
-and count using the WHO/NAMES commands.
-
-2) More sophisticated detection methods, including:
+1) More sophisticated detection methods, including:
 -sharp, significant increases in viewers without proportional increases in
  the number of chat users (take into account videos in the front page of
  Twitch.. maybe check the front page of Twitch to see which user is there?
@@ -35,6 +31,6 @@ and count using the WHO/NAMES commands.
 
 -If the stream has more viewers than followers, there may be cause for concern.
 
-3) Keep the program running when my internet crashes. Currently the program
+2) Keep the program running when my internet crashes. Currently the program
  just exits.
 
