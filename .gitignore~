@@ -1,0 +1,5 @@
+*.pyc
+*.py~
+*passw*
+*pass_info*
+*get_exceptions*

@@ -8,6 +8,7 @@ import tweepy
 from time import gmtime, strftime
 from get_passwords import get_passwords
 from get_exceptions import get_exceptions
+from chat_count import chat_count
 
 #delete tweets if someone stopped streaming?
 delete = 0
@@ -38,7 +39,13 @@ def user_chatters(user):
     req = requests.get("http://tmi.twitch.tv/group/user/" + user)
     try:
         while (req.status_code != 200):
-            print "_TMI problem" + str(req.status_code) + " - " + strftime("%b %d %H:%M:%S", gmtime()) + "_"
+            print "----TMI error", str(req.status_code), "-", strftime("%b %d %H:%M:%S", gmtime()) + "----"
+            chatters2 = chat_count(user)
+            if (chatters2 != 1):
+                print "returning %d via module" %chatters2
+                #return chatters2
+            else:
+                print "(My module got 1 for %s =| )" %user
             req = requests.get("http://tmi.twitch.tv/group/user/" + user)
         chat_data = req.json()
         chatters = chat_data['chatter_count']
@@ -50,13 +57,15 @@ def user_chatters(user):
 def user_ratio(user):
     exceptions = get_exceptions()
     if (user in exceptions):
-        print user + " is alright :)"
+        print user, "is alright :)"
         return 1
     chatters = user_chatters(user)
+    chatters2 = chat_count(user)
     viewers = user_viewers(user)
     if (viewers != 0):
         ratio = float(chatters) / viewers
-        print user + ": " + str(chatters) + " / " + str(viewers) + " = %0.3f" %ratio
+        print user + ": " + str(chatters) + " / " + str(viewers) + " = %0.3f" %ratio,
+        print "(%d from module)" %chatters2
     else: 
         return 1 # user is offline
 
@@ -65,8 +74,8 @@ def user_ratio(user):
 suspicious = []
 num_suspicious = 0 #wait this isn't necessary - just do len(suspicious) i'm too used to C
 user_threshold = 200
-ratio_threshold = 0.17 #if false positives, lower this number. if false negatives, raise this number
-expected_ratio = 0.7 #eventually tailor this to each game/channel. Tailoring to channel may be hard.
+ratio_threshold = 0.16 #if false positives, lower this number. if false negatives, raise this number
+expected_ratio = 0.7 #eventually tailor this to each game/channel. Tailoring to channel might be hard.
 
 def send_tweet(user, ratio, game, viewers):
     name = "http://www.twitch.tv/" + user
@@ -81,7 +90,7 @@ def send_tweet(user, ratio, game, viewers):
             print "Tweeting!"
             suspicious.append([name, ratio, game])
             originame = name[21:]
-            chatters = user_chatters(originame) # eventually do something more intelligent than chatters, take into account the average game ratio and calculate the expected number of viewers
+            chatters = int(viewers * ratio) # TODO: something more intelligent than chatters, take into account the average game ratio and calculate the expected number of viewers
             game_tweet = game.split(":")[0] #manually shorten the tweet, many of these by inspection
             if (game_tweet == "League of Legends"):
                 game_tweet = "LoL"
@@ -100,7 +109,7 @@ def send_tweet(user, ratio, game, viewers):
             #TODO: change expected_ratio to be each game - is this a good idea? avg skewed by botting viewers...
             fake_viewers = int(viewers - (1 / expected_ratio) * chatters)
             estimate = "(~" + str(fake_viewers) + " extra viewers of "+ str(viewers) + " total)"
-            tweet = name + " (" + game_tweet + ") may have a false-viewer bot " + estimate
+            tweet = name + " (" + game_tweet + ") might have a false-viewer bot " + estimate
             if (ratio < 0.15):
                 tweet = name + " (" + game_tweet + ") appears to have a false-viewer bot " + estimate
             if (ratio < 0.09):
@@ -128,7 +137,7 @@ def game_ratio(game):
         print r.status_code, ", service unavailable"
         r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
     gamedata = r.json()
-#eventually make a dictionary with keys as the game titles and values as the average and count
+#TODO make a dictionary with keys as the game titles and values as the average and count
     count = 0 # number of games checked
     avg = 0
     while len(gamedata.keys()) != 2:
