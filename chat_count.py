@@ -33,6 +33,7 @@ def chat_count(chatroom, verbose=False):
        origicount = count
        for message in data:
            if (len(message.split(" ")) > 1 and message.split(" ")[1] == "366"):
+               count = count - 1
                if (verbose):
                    print count, "users"
                return count

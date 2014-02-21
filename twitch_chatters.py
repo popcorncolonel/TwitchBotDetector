@@ -45,7 +45,7 @@ def user_chatters(user):
                 print "returning %d via module" %chatters2
                 return chatters2
             else:
-                print "(My module got 1 for %s =| )" %user
+                print "(My module got 0 for %s =| )" %user
             req = requests.get("http://tmi.twitch.tv/group/user/" + user)
         chat_data = req.json()
         chatters = chat_data['chatter_count']
