@@ -17,10 +17,10 @@ def count_users(full_msg):
             names = namegroup[5:]
             count += len(names)
         if (end_names_num in namegroup):
-            if (count == 65959):
-                print "what."
-                print temp###
-                return 0
+            if (count == 65959): #This was a number I was getting repeatedly
+                print "what."    #When looking at riotgames (300k viewers).
+                print temp###    #I still don't know why it is/was happening, so
+                return 0         #it is still printing for debugging purposes.
             return count - 1
     if (count == 2):
         print full_msg

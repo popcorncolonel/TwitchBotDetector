@@ -14,11 +14,6 @@ Go to http://www.twitter.com/BotDetectorBot!
 
 
 TODO:
-0) Separate the suspicious list into "suspicious" and "confirmed", first
-checking if the user is under the threshold, then the second time it checks
-around, "confrirm" the user and tweet. This helps with viewer/ratio accuracy
-and edge cases with people just starting up their stream. 
-
 1) More sophisticated detection methods, including:
 -sharp, significant increases in viewers without proportional increases in
  the number of chat users (take into account videos in the front page of
@@ -33,4 +28,7 @@ and edge cases with people just starting up their stream.
 
 2) Keep the program running when my internet crashes. Currently the program
  just exits.
+
+3) Overhaul the tweet removal system, or rethink it in general. Should it
+delete old tweets that were saying that the user was botting?
 
