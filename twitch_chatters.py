@@ -12,6 +12,7 @@ from chat_count import chat_count
 
 #delete tweets if someone stopped streaming?
 delete = 0
+tweetmode = False #true if you want it to tweet, false if you don't
 
 errlog = open('errlog.txt', 'w')
 
@@ -36,22 +37,31 @@ exceptions = get_exceptions()
 
 def user_chatters(user):
     chatters = 0
+    chatters2 = 0
     req = requests.get("http://tmi.twitch.tv/group/user/" + user)
     try:
         while (req.status_code != 200):
-            print "----TMI error", str(req.status_code), "-", strftime("%b %d %H:%M:%S", gmtime()) + "----"
-            #chatters2 = chat_count(user)
-            #if (chatters2 > 3):
-            #    print "returning %d via module" %chatters2
-            #    return chatters2
-            #else:
-            #    print "(My module got 0 for %s =| )" %user
+            print "----TMI error getting " + user, str(req.status_code), "-", strftime("%b %d %H:%M:%S", gmtime()) + "----"
             req = requests.get("http://tmi.twitch.tv/group/user/" + user)
-        chat_data = req.json()
+        try:
+            chat_data = req.json()
+        except ValueError:
+            return user_chatters(user)
         chatters = chat_data['chatter_count']
     except TypeError:
         print "recursing, got some kinda error"
-        user_chatters(user)
+        return user_chatters(user)
+    '''
+    if (chatters > 0):
+        try:
+            chatters2 = chat_count(user)
+        except socket.error as error:
+            print "oh. error getting chatters via module"
+            return user_chatters(user)
+        if (chatters2 > 3):
+            print "returning %d via module" %chatters2
+            return chatters2
+    '''
     return chatters
 
 def user_ratio(user):
@@ -60,19 +70,27 @@ def user_ratio(user):
         print user, "is alright :)"
         return 1
     chatters = user_chatters(user)
-    #chatters2 = chat_count(user)
+    while True:
+        try:
+            chatters2 = chat_count(user)
+            break
+        except socket.error as error:
+            print "error getting chatters. o well. try again."
+            pass
     viewers = user_viewers(user)
     if (viewers != 0):
         ratio = float(chatters) / viewers
-        print user + ": " + str(chatters) + " / " + str(viewers) + " = %0.3f" %ratio#,
-        #print "(%d from module)" %chatters2
+        print user + ": " + str(chatters) + " / " + str(viewers) + " = %0.3f" %ratio,
+        if (chatters2 < 2):
+            print "                  ",
+        print "(%d from module (vs %d))" %chatters2 %chatters
     else: 
         return 1 # user is offline
 
     return ratio
 
 suspicious = []
-num_suspicious = 0 #wait this isn't necessary - just do len(suspicious) i'm too used to C
+confirmed = []
 user_threshold = 200
 ratio_threshold = 0.16 #if false positives, lower this number. if false negatives, raise this number
 expected_ratio = 0.7 #eventually tailor this to each game/channel. Tailoring to channel might be hard.
@@ -123,11 +141,9 @@ def send_tweet(user, ratio, game, viewers):
                 print "couldn't tweet :("
                 errlog.write("Twitter mad, couldn't tweet :(.\n")
                 pass
-        global num_suspicious
-        num_suspicious += 1
 
 def game_ratio(game):
-
+    global tweetmode
     try:
         r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
     except:
@@ -175,7 +191,8 @@ def game_ratio(game):
                         else:
                             print "Something went wrong."
                             print "number of stati found:", len(statuses)
-            send_tweet(user, ratio, game, viewers)
+            if (tweetmode):
+                send_tweet(user, ratio, game, viewers)
             avg += ratio
             count += 1
     else:
@@ -193,20 +210,20 @@ def remove_offline():
         if (user_viewers(originame) < user_threshold):
             print originame + " appears to have gone offline (or stopped botting)! removing from suspicious list"
             suspicious.remove(item)
-            game = item[2]
-            tweet = name + " (playing " + game.split(":")[0] + ") appears to have a false-viewer bot"
-            print "tweet text: ", tweet
-            statuses = twitter.search(q=tweet)['statuses']
-            if (len(statuses) > 0):
-                for i in range(0, len(statuses)):
-                    id = statuses[i]['id']
-                    print "Destroying tweet ", id
-                    print "With text "+tweet
-                    if (delete):
+            if (delete):
+                game = item[2]
+                tweet = name + " (playing " + game.split(":")[0] + ") appears to have a false-viewer bot"
+                print "tweet text: ", tweet
+                statuses = twitter.search(q=tweet)['statuses']
+                if (len(statuses) > 0):
+                    for i in range(0, len(statuses)):
+                        id = statuses[i]['id']
+                        print "Destroying tweet ", id
+                        print "With text "+tweet
                         api.destroy_status(id)
-            else:
-                errlog.write("Something went wrong.\n")
-                errlog.write("searched for: "+ tweet + "\nBut didn't find it.\n")
+                else:
+                    errlog.write("Something went wrong.\n")
+                    errlog.write("searched for: "+ tweet + "\nBut didn't find it.\n")
 
 #ratio = 0
 def search_all_games():
@@ -217,7 +234,7 @@ def search_all_games():
         ratio = game_ratio(game)
         print
         print "Average ratio for " + game + ": %0.3f" %ratio
-        if (num_suspicious == 0):
+        if (len(suspicious) == 0):
             print "We don't think anyone is botting " + game + "! :D:D"
         else: 
             print

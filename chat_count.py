@@ -11,14 +11,27 @@ def count_users(full_msg):
     data = full_msg.split("\r\n")
     count = 0
     for namegroup in data:
+        temp = namegroup############################
         namegroup = namegroup.split(" ")
         if (names_num in namegroup):
             names = namegroup[5:]
             count += len(names)
+        if (end_names_num in namegroup):
+            if (count == 65959):
+                print "what."
+                print temp###
+                return 0
+            return count - 1
+    if (count == 2):
+        print full_msg
+    if (count == 65959):
+        print "wath"
+        return 0
     return count - 1 #don't count myself - i'm not actually in chat
 
 def chat_count(chatroom, verbose=False):
     global i
+    i = 0
     chan = "#" + chatroom
     nick = get_username()
     PASS = get_password()
@@ -31,18 +44,37 @@ def chat_count(chatroom, verbose=False):
     while 1:
        sock.send("JOIN "+chan+"\r\n")
        #sock.send("MODE " + nick + " +B\r\n")
-       data = sock.recv(4096)
+       data = sock.recv(1024)
        i+=1
        if data[0:4] == "PING":
           sock.send(data.replace("PING", "PONG"))
        #if data.split(" ")[1] == "001":
        #   sock.send("MODE " + nick + " +B\r\n")
        full_msg += data
-       if (end_names_num in data.split(" ")):
-           return count_users(full_msg) 
+       wordlist = data.split(" ")
+       if (nick + " " + chan + " :End of /NAMES list" in data):
+           if (verbose):
+               print "returning (\"End of /NAMES list\") due to:"
+               print '-----'
+               print data
+               print '-----'
+           return count_users(full_msg)
+       if (":jtv MODE #" in data):
+           if (verbose):
+               print "returning (FOUND MODE) due to:"
+               print data
+           return count_users(full_msg)
+       '''
+       for item in wordlist:
+           item = item.strip()
+           if (item == end_names_num):
+               print "returning (366) due to:"
+               print data
+               return count_users(full_msg) 
+       '''
 
 if (len(sys.argv) == 2):
-    count = chat_count(sys.argv[1], verbose=True)
+    count = chat_count(sys.argv[1], verbose=False)
     if (type(count) == int):
         print count, "chatters in %s" %sys.argv[1]
 

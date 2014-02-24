@@ -22,7 +22,10 @@ while flag: #jank bugfix - sometimes can't read json
 
 def user_viewers(user):
     req = 0
-    req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
+    try:
+        req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
+    except:
+        return user_viewers(user)
     if not req:
         print "infinite loop? check here."
     if (type(req) == int):
