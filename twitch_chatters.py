@@ -83,7 +83,7 @@ def user_ratio(user):
         print user + ": " + str(chatters) + " / " + str(viewers) + " = %0.3f" %ratio,
         if (chatters2 < 2):
             print "                  ",
-        print "(%d from module (vs %d))" %chatters2 %chatters
+        print "(%d from module (vs %d))".format(chatters2, chatters)
     else: 
         return 1 # user is offline
 
