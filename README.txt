@@ -32,3 +32,5 @@ TODO:
 3) Overhaul the tweet removal system, or rethink it in general. Should it
 delete old tweets that were saying that the user was botting?
 
+4) Separate twitter module. Why is it even in twitch_chatters.
+

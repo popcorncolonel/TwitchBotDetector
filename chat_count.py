@@ -2,6 +2,7 @@
 import sys
 import socket
 from pass_info import get_username, get_password
+from twitch_viewers import removeNonAscii
 
 names_num = "353"
 end_names_num = "366"
@@ -44,7 +45,7 @@ def chat_count(chatroom, verbose=False):
     while 1:
        sock.send("JOIN "+chan+"\r\n")
        #sock.send("MODE " + nick + " +B\r\n")
-       data = sock.recv(1024)
+       data = removeNonAscii(sock.recv(1024))
        i+=1
        if data[0:4] == "PING":
           sock.send(data.replace("PING", "PONG"))

@@ -14,8 +14,6 @@ from chat_count import chat_count
 delete = 0
 tweetmode = False #true if you want it to tweet, false if you don't
 
-errlog = open('errlog.txt', 'w')
-
 passes = get_passwords()
 
 APP_KEY =            passes[0]
@@ -81,8 +79,12 @@ def user_ratio(user):
     if (viewers != 0):
         ratio = float(chatters) / viewers
         print user + ": " + str(chatters) + " / " + str(viewers) + " = %0.3f" %ratio,
-        print "(%d from module (vs %d))" %(chatters2, chatters),
-        print " (%0.2f%% error)" %(100 * (float(abs(chatters2 - chatters)) / chatters)) #percent error
+        print "(%d - %d)" %(chatters2, chatters),
+        error = (100 * (float(abs(chatters2 - chatters)) / chatters)) #percent error 
+        if (error > 3):
+            print " (%0.0f%% error)" %error
+        else:
+            print
     else: 
         return 1 # user is offline
 
@@ -117,6 +119,10 @@ def send_tweet(user, ratio, game, viewers):
     name = "http://www.twitch.tv/" + user
     if (ratio < ratio_threshold):
         found = 0
+        for item in confirmed:
+            if item[0] == name:
+                item[1] = ratio #update the ratio and game each time
+                item[2] = game
         for item in suspicious:
             if item[0] == name:
                 item[1] = ratio #update the ratio and game each time
@@ -124,7 +130,10 @@ def send_tweet(user, ratio, game, viewers):
                 found = 1
         if found:
             suspicious.remove([name, ratio, game])
-            print "Tweeting!"
+            if (tweetmode):
+                print "Tweeting!"
+            else:
+                print "(Not actually Tweeting this):"
             confirmed.append([name, ratio, game])
             originame = name[21:]
             chatters = int(viewers * ratio) # TODO: something more intelligent than chatters, take into account the average game ratio and calculate the expected number of viewers
@@ -139,15 +148,17 @@ def send_tweet(user, ratio, game, viewers):
                 tweet = name + " (" + game_tweet + ") almost definitely has a false-viewer bot " + estimate
             if (len(tweet) + 2 + len(originame) <= 140): #max characters in a tweet
                 tweet = tweet + " #" + originame
-            print("tweeting: '" + tweet + "'")
+            print("Tweeting: '" + tweet + "'")
             if (tweetmode):
                 try:
                     twitter.update_status(status=tweet)
                 except:
                     print "couldn't tweet :("
-                    errlog.write("Twitter mad, couldn't tweet :(.\n")
                     pass
         if not found:
+            for item in confirmed:
+                if (item[0] == name):
+                    return
             suspicious.append([name, ratio, game])
 
 def game_ratio(game):
@@ -159,7 +170,10 @@ def game_ratio(game):
     while (r.status_code != 200):
         print r.status_code, ", service unavailable"
         r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
-    gamedata = r.json()
+    try:
+        gamedata = r.json()
+    except ValueError:
+        return game_ratio(game)
 #TODO make a dictionary with keys as the game titles and values as the average and count
     count = 0 # number of games checked
     avg = 0
@@ -168,7 +182,10 @@ def game_ratio(game):
         while (r.status_code != 200):
             print r.status_code, ", service unavailable"
             r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
-        gamedata = r.json()
+        try:
+            gamedata = r.json()
+        except ValueError:
+            return game_ratio(game)
     if len(gamedata['streams']) > 0:
         for i in range(0, len(gamedata['streams'])):
             viewers =  gamedata['streams'][i]['viewers']
@@ -207,11 +224,15 @@ def remove_offline():
         originame = name[21:] #remove the http://www.twitch.tv/
         if (user_viewers(originame) < user_threshold):
             print originame + " appears to have stopped botting! removing from confirmed list"
-            suspicious.remove(item)
+            confirmed.remove(item)
 
-#ratio = 0
 def search_all_games():
-    topdata = topreq.json()
+    try:
+        while (topreq.status_code != 200):
+            topreq = requests.get("https://api.twitch.tv/kraken/games/top")
+        topdata = topreq.json()
+    except ValueError:
+        search_all_games()
     for i in range(0,len(topdata['top'])):
         game = removeNonAscii(topdata['top'][i]['game']['name'])
         print "__" + game + "__"
@@ -219,12 +240,12 @@ def search_all_games():
         print
         print "Average ratio for " + game + ": %0.3f" %ratio
         print
-        print
         print "We are suspicious of: "
         if (len(suspicious) == 0):
             print "No one :D"
         for item in suspicious:
             print "%0.3f:" %item[1], item[0]
+        print
         print "We have confirmed: "
         if (len(confirmed) == 0):
             print "No one :D"
@@ -240,7 +261,7 @@ while (topreq.status_code != 200):
     topreq = requests.get("https://api.twitch.tv/kraken/games/top")
 topdata = topreq.json()
 
-while 1:
+while True:
     search_all_games()
     remove_offline()
 
