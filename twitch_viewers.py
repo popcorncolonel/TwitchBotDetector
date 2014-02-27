@@ -1,7 +1,8 @@
 import requests
 import json
-import sys # for printing to stderr
+import sys # for printing to stderr and restarting program
 
+restart_on_failure = True #Be careful with this. "True" might result in a lot of repeated tweets.
 MAX = 100
 limit = str(MAX)
 offset = str(0)
@@ -19,8 +20,15 @@ while flag: #jank bugfix - sometimes can't read json
     except:
         pass
 
+def restart_program():
+    python = sys.executable
+    os.execl(python, python, * sys.argv)
 
+#user_viewers: 
+#   returns the number of viewers twitch.tv/user currently has. returns 0 if offline.
+#user is a string representing http://www.twitch.tv/<user>
 def user_viewers(user):
+    global restart_on_failure
     req = 0
     try:
         req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
@@ -33,7 +41,13 @@ def user_viewers(user):
         print "wat. line 35 twitch_viewers"
     while (req.status_code != 200):
         print (str(req.status_code) + " viewerlist unavailable")
-        req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
+        try:
+            req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
+        except:
+            pass
+        if (req.status_code == 422 and restart_on_failure):
+            print "RESTARTING PROGRAM!!!!!!!!!!!!!!!!!!!!! 422 ERROR"
+            restart_program()
     try:
         userdata = req.json()
     except ValueError:

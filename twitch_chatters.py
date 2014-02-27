@@ -33,6 +33,9 @@ api = tweepy.API(auth)
 # example: chat disabled, or chat hosted not on the twitch site, or mainly viewed on front page of twitch
 exceptions = get_exceptions()
 
+#user_chatters:
+#   returns the number of chatters in user's Twitch chat
+#user is a string representing http://www.twitch.tv/<user>
 def user_chatters(user):
     chatters = 0
     chatters2 = 0
@@ -49,6 +52,8 @@ def user_chatters(user):
     except TypeError:
         print "recursing, got some kinda error"
         return user_chatters(user)
+    #my experimental method that goes directly to a user's IRC channel and counts the viewers there.
+    #not yet proven to be correct.
     '''
     if (chatters > 0):
         try:
@@ -62,6 +67,9 @@ def user_chatters(user):
     '''
     return chatters
 
+#user_ratio:
+#   returns the ratio of chatters to viewers in <user>'s channel
+#user is a string representing http://www.twitch.tv/<user>
 def user_ratio(user):
     exceptions = get_exceptions()
     if (user in exceptions):
@@ -80,22 +88,33 @@ def user_ratio(user):
         ratio = float(chatters) / viewers
         print user + ": " + str(chatters) + " / " + str(viewers) + " = %0.3f" %ratio,
         print "(%d - %d)" %(chatters2, chatters),
-        error = (100 * (float(abs(chatters2 - chatters)) / chatters)) #percent error 
-        if (error > 3):
-            print " (%0.0f%% error)" %error
+        if (chatters != 0):
+            error = (100 * (float(abs(chatters2 - chatters)) / chatters)) #percent error 
+        else:
+            return 0
+        if (error > 6):
+            print " (%0.0f%% error)!" %error,
+            if (error < 99):
+                print "!!!!!!!!"
+            else:
+                print
         else:
             print
     else: 
         return 1 # user is offline
-
     return ratio
 
 suspicious = []
 confirmed = []
-user_threshold = 200
+user_threshold = 200   #initial necessity for confirmation
+user_threshold_2 = 150 #once a streamer has been confirmed at 200 viewers, then they need to go
+                       #below this threshold to be taken off
 ratio_threshold = 0.16 #if false positives, lower this number. if false negatives, raise this number
 expected_ratio = 0.7 #eventually tailor this to each game/channel. Tailoring to channel might be hard.
 
+#get_game_tweet:
+#   tailors the name of the game (heh) to what is readable and short enough to tweet
+#game is a string
 def get_game_tweet(game):
     game_tweet = game.split(":")[0] #manually shorten the tweet, many of these by inspection
     if (game_tweet == "League of Legends"):
@@ -114,6 +133,12 @@ def get_game_tweet(game):
                 game_tweet += item[0] #first initial - SC2: LotV
     return game_tweet
 
+#send_tweet
+#   if <user> is believed to be viewer botting, sends a tweet via the twitter module
+#user is a string representing http://www.twitch.tv/<user>
+#ratio is <user>'s chatter to viewer ratio
+#game is the game they're playing (Unabbreviated: ex. Starcraft II: Heart of the Swarm
+#viewers is how many viewers the person has - can be used to get number of chatters, with ratio
 def send_tweet(user, ratio, game, viewers):
     global tweetmode
     name = "http://www.twitch.tv/" + user
@@ -161,6 +186,9 @@ def send_tweet(user, ratio, game, viewers):
                     return
             suspicious.append([name, ratio, game])
 
+#game_ratio
+#   returns the average chatter:viewer ratio for a certain game
+#game is a string - game to search
 def game_ratio(game):
     try:
         r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
@@ -173,6 +201,7 @@ def game_ratio(game):
     try:
         gamedata = r.json()
     except ValueError:
+        print "could not decode json. recursing"
         return game_ratio(game)
 #TODO make a dictionary with keys as the game titles and values as the average and count
     count = 0 # number of games checked
@@ -185,6 +214,7 @@ def game_ratio(game):
         try:
             gamedata = r.json()
         except ValueError:
+            print "couldn't json; recursing"
             return game_ratio(game)
     if len(gamedata['streams']) > 0:
         for i in range(0, len(gamedata['streams'])):
@@ -196,10 +226,9 @@ def game_ratio(game):
             name = "http://www.twitch.tv/" + user
 
             ratio = -1
-            while ratio <= 0:
-                if (ratio == 0):
-                    print "ratio is 0... trying again line 184 twitch_chatters"
-                ratio = user_ratio(user)
+            ratio = user_ratio(user)
+            if (ratio == 0):
+                print "ratio is 0... abort program?"
             send_tweet(user, ratio, game, viewers)
             avg += ratio
             count += 1
@@ -211,23 +240,28 @@ def game_ratio(game):
     # for the game specified, go through all users more than <user_threshold> viewers, find ratio, average them
     return avg
 
+#remove_offline:
+#   removes users from the suspiciuos and confirmed lists if they are no longer botting
 def remove_offline():
     for item in suspicious:
         name = item[0]
         originame = name[21:] #remove the http://www.twitch.tv/
-        if (user_viewers(originame) < user_threshold):
+        if (user_viewers(originame) < user_threshold_2):
             print originame + " appears to have stopped botting! removing from suspicious list"
             suspicious.remove(item)
 
     for item in confirmed:
         name = item[0]
         originame = name[21:] #remove the http://www.twitch.tv/
-        if (user_viewers(originame) < user_threshold):
+        if (user_viewers(originame) < user_threshold_2):
             print originame + " appears to have stopped botting! removing from confirmed list"
             confirmed.remove(item)
 
+#search_all_games:
+#   loops through all the games via the Twitch API, checking for their average ratios
 def search_all_games():
     try:
+        topreq = requests.get("https://api.twitch.tv/kraken/games/top")
         while (topreq.status_code != 200):
             topreq = requests.get("https://api.twitch.tv/kraken/games/top")
         topdata = topreq.json()
@@ -255,12 +289,9 @@ def search_all_games():
         print "Total of " + str(len(suspicious) + len(confirmed)) + " botters"
         print
         print
+    print "looping back around :D"
 
-topreq = requests.get("https://api.twitch.tv/kraken/games/top")
-while (topreq.status_code != 200):
-    topreq = requests.get("https://api.twitch.tv/kraken/games/top")
-topdata = topreq.json()
-
+#main loop 
 while True:
     search_all_games()
     remove_offline()
