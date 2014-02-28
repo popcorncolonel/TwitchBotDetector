@@ -1,6 +1,7 @@
 import requests
 import json
 import sys # for printing to stderr and restarting program
+import os
 
 restart_on_failure = True #Be careful with this. "True" might result in a lot of repeated tweets.
 MAX = 100
@@ -52,7 +53,7 @@ def user_viewers(user):
         userdata = req.json()
     except ValueError:
         return user_viewers(user) #nope start over
-    if (len(userdata.keys()) == 2):
+    if ('stream' in userdata.keys()):
         viewers = 0
         if (userdata['stream']): # if the streamer is offline, userdata returns null
             viewers = userdata['stream']['viewers']

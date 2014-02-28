@@ -13,6 +13,8 @@ from chat_count import chat_count
 #delete tweets if someone stopped streaming?
 delete = 0
 tweetmode = False #true if you want it to tweet, false if you don't
+alternative_chatters_method = False #True if you want to use faster but potentially unreliable
+                                    #method of getting number of chatters for a user
 
 passes = get_passwords()
 
@@ -31,6 +33,7 @@ api = tweepy.API(auth)
 
 # these users are known to have small chat to viewer ratios for valid reasons
 # example: chat disabled, or chat hosted not on the twitch site, or mainly viewed on front page of twitch
+# type: array of strings: example ["destiny", "scg_live"]
 exceptions = get_exceptions()
 
 #user_chatters:
@@ -40,9 +43,20 @@ def user_chatters(user):
     chatters = 0
     chatters2 = 0
     req = requests.get("http://tmi.twitch.tv/group/user/" + user)
+    if (alternative_chatters_method):
+        try:
+            chatters2 = chat_count(user)
+        except socket.error as error:
+            pass
+        if (chatters2 > 1):
+            return chatters2
     try:
         while (req.status_code != 200):
-            print "----TMI error getting " + user, str(req.status_code), "-", strftime("%b %d %H:%M:%S", gmtime()) + "----"
+            print "----TMI error", req.status_code, 
+            try:
+                print "getting", user + " (module returned %d)-----" %chat_count(user)
+            except socket.error as error:
+                print "-----"
             req = requests.get("http://tmi.twitch.tv/group/user/" + user)
         try:
             chat_data = req.json()
@@ -89,13 +103,14 @@ def user_ratio(user):
         print user + ": " + str(chatters) + " / " + str(viewers) + " = %0.3f" %ratio,
         print "(%d - %d)" %(chatters2, chatters),
         if (chatters != 0):
-            error = (100 * (float(abs(chatters2 - chatters)) / chatters)) #percent error 
+            diff = abs(chatters2 - chatters)
+            error = (100 * (float(diff) / chatters)) #percent error 
         else:
             return 0
         if (error > 6):
             print " (%0.0f%% error)!" %error,
-            if (error < 99):
-                print "!!!!!!!!"
+            if (error < 99 and diff > 10):
+                print "!!!!!!!!!!!!!!!!!!!" #if my chatters module goes wrong, i want to notice it.
             else:
                 print
         else:
@@ -206,7 +221,7 @@ def game_ratio(game):
 #TODO make a dictionary with keys as the game titles and values as the average and count
     count = 0 # number of games checked
     avg = 0
-    while len(gamedata.keys()) != 2:
+    while ('streams' not in gamedata.keys()):
         r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
         while (r.status_code != 200):
             print r.status_code, ", service unavailable"
@@ -253,7 +268,7 @@ def remove_offline():
     for item in confirmed:
         name = item[0]
         originame = name[21:] #remove the http://www.twitch.tv/
-        if (user_viewers(originame) < user_threshold_2):
+        if (user_ratio(originame) > 0.40 or user_viewers(originame) == 0):
             print originame + " appears to have stopped botting! removing from confirmed list"
             confirmed.remove(item)
 
