@@ -1,10 +1,10 @@
 *~
+*exceptions*
 *.pyc
 *.py~
 *passw*
 *.swp
 *.swo
 *pass_info*
-*get_exceptions*
 *errlog*
 .gitignore~

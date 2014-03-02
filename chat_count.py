@@ -11,13 +11,14 @@ i = 0#
 def count_users(full_msg):
     data = full_msg.split("\r\n")
     count = 0
+    print full_msg
     for namegroup in data:
         temp = namegroup############################
         namegroup = namegroup.split(" ")
         if (names_num in namegroup):
             names = namegroup[5:]
             count += len(names)
-        if (end_names_num in namegroup):
+        if ("End of /NAMES list" in namegroup):
             if (count == 65959): #This was a number I was getting repeatedly
                 print "what."    #When looking at riotgames (300k viewers).
                 print temp###    #I still don't know why it is/was happening, so
@@ -28,6 +29,8 @@ def count_users(full_msg):
     if (count == 65959):
         print "wath"
         return 0
+    if (count == 0):
+        return count
     return count - 1 #don't count myself - i'm not actually in chat
 
 def chat_count(chatroom, verbose=False):
@@ -49,11 +52,11 @@ def chat_count(chatroom, verbose=False):
        i+=1
        if data[0:4] == "PING":
           sock.send(data.replace("PING", "PONG"))
+          continue
        #if data.split(" ")[1] == "001":
        #   sock.send("MODE " + nick + " +B\r\n")
        full_msg += data
-       wordlist = data.split(" ")
-       if (nick + " " + chan + " :End of /NAMES list" in data):
+       if (":End of /NAMES list" in data):
            if (verbose):
                print "returning (\"End of /NAMES list\") due to:"
                print '-----'
@@ -65,15 +68,18 @@ def chat_count(chatroom, verbose=False):
                print "returning (FOUND MODE) due to:"
                print data
            return count_users(full_msg)
-       '''
-       for item in wordlist:
-           item = item.strip()
-           if (item == end_names_num):
+       if ("PRIVMSG" in data): #privmsg's only come in after the names list
+           if (verbose):
+               print "returning (PRIVMSG) due to:"
+               print data
+           return count_users(full_msg)
+       if ("366 " + nick in data): 
+           if (verbose):
                print "returning (366) due to:"
                print data
-               return count_users(full_msg) 
-       '''
+           return count_users(full_msg)
 
+#usage: "python chat_count.py twitchplayspokemon"
 if (len(sys.argv) == 2):
     count = chat_count(sys.argv[1], verbose=False)
     if (type(count) == int):

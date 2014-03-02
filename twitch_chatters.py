@@ -1,40 +1,42 @@
 import socket
 import requests
 import sys # for printing to stderr
-from twitch_viewers import user_viewers
-from twitch_viewers import removeNonAscii
-from twython import Twython
-import tweepy
-from time import gmtime, strftime
-from get_passwords import get_passwords
+from twitch_viewers import user_viewers, removeNonAscii
+import handle_twitter
 from get_exceptions import get_exceptions
 from chat_count import chat_count
 
-#delete tweets if someone stopped streaming?
-delete = 0
+suspicious = []
+confirmed = []
+
 tweetmode = False #true if you want it to tweet, false if you don't
-alternative_chatters_method = False #True if you want to use faster but potentially unreliable
+alternative_chatters_method = True  #True if you want to use faster but potentially unreliable
                                     #method of getting number of chatters for a user
-
-passes = get_passwords()
-
-APP_KEY =            passes[0]
-APP_SECRET =         passes[1]
-OAUTH_TOKEN =        passes[2]
-OAUTH_TOKEN_SECRET = passes[3]
-
-twitter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
-
-id = 0
-
-auth = tweepy.OAuthHandler(APP_KEY, APP_SECRET)
-auth.set_access_token(OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
-api = tweepy.API(auth)
+user_threshold = 200   #initial necessity for confirmation
+user_threshold_2 = 150 #once a streamer has been confirmed at 200 viewers, then they need to go
+                       #below this threshold to be taken off
+ratio_threshold = 0.16 #if false positives, lower this number. if false negatives, raise this number
+expected_ratio = 0.7 #eventually tailor this to each game/channel. Tailoring to channel might be hard.
 
 # these users are known to have small chat to viewer ratios for valid reasons
-# example: chat disabled, or chat hosted not on the twitch site, or mainly viewed on front page of twitch
-# type: array of strings: example ["destiny", "scg_live"]
+# example: chat disabled, or chat hosted not on the twitch site, or mainly viewed on 
+#          front page of twitch
+# type: array of strings: example: ["destiny", "scg_live"]
 exceptions = get_exceptions()
+
+#get_chatters2:
+#   gets the number of chatters in user's Twitch chat, via chat_count
+#   Essentially, chat_count is my experimental method that goes directly to 
+#   a user's IRC channel and counts the viewers there. It is not yet proven to be 
+#   correct 100% of the time.
+#user is a string representing http://www.twitch.tv/<user>
+def get_chatters2(user):
+    chatters2 = 0
+    try:
+        chatters2 = chat_count(user)
+    except socket.error as error:
+        return get_chatters2(user)
+    return chatters2
 
 #user_chatters:
 #   returns the number of chatters in user's Twitch chat
@@ -44,19 +46,17 @@ def user_chatters(user):
     chatters2 = 0
     req = requests.get("http://tmi.twitch.tv/group/user/" + user)
     if (alternative_chatters_method):
-        try:
-            chatters2 = chat_count(user)
-        except socket.error as error:
-            pass
+        chatters2 = get_chatters2(user)
         if (chatters2 > 1):
             return chatters2
     try:
         while (req.status_code != 200):
+            chatters2 = get_chatters2(user)
+            if (alternative_chatters_method):
+                if (chatters2 > 1):
+                    return chatters2
             print "----TMI error", req.status_code, 
-            try:
-                print "getting", user + " (module returned %d)-----" %chat_count(user)
-            except socket.error as error:
-                print "-----"
+            print "getting", user + " (module returned %d)-----" %chatters2
             req = requests.get("http://tmi.twitch.tv/group/user/" + user)
         try:
             chat_data = req.json()
@@ -66,19 +66,6 @@ def user_chatters(user):
     except TypeError:
         print "recursing, got some kinda error"
         return user_chatters(user)
-    #my experimental method that goes directly to a user's IRC channel and counts the viewers there.
-    #not yet proven to be correct.
-    '''
-    if (chatters > 0):
-        try:
-            chatters2 = chat_count(user)
-        except socket.error as error:
-            print "oh. error getting chatters via module"
-            return user_chatters(user)
-        if (chatters2 > 3):
-            print "returning %d via module" %chatters2
-            return chatters2
-    '''
     return chatters
 
 #user_ratio:
@@ -90,13 +77,7 @@ def user_ratio(user):
         print user, "is alright :)"
         return 1
     chatters = user_chatters(user)
-    while True:
-        try:
-            chatters2 = chat_count(user)
-            break
-        except socket.error as error:
-            print "error getting chatters. o well. try again."
-            pass
+    chatters2 = get_chatters2(user)
     viewers = user_viewers(user)
     if (viewers != 0):
         ratio = float(chatters) / viewers
@@ -119,92 +100,11 @@ def user_ratio(user):
         return 1 # user is offline
     return ratio
 
-suspicious = []
-confirmed = []
-user_threshold = 200   #initial necessity for confirmation
-user_threshold_2 = 150 #once a streamer has been confirmed at 200 viewers, then they need to go
-                       #below this threshold to be taken off
-ratio_threshold = 0.16 #if false positives, lower this number. if false negatives, raise this number
-expected_ratio = 0.7 #eventually tailor this to each game/channel. Tailoring to channel might be hard.
-
-#get_game_tweet:
-#   tailors the name of the game (heh) to what is readable and short enough to tweet
-#game is a string
-def get_game_tweet(game):
-    game_tweet = game.split(":")[0] #manually shorten the tweet, many of these by inspection
-    if (game_tweet == "League of Legends"):
-        game_tweet = "LoL"
-    if (game_tweet == "Call of Duty" and len(game.split(":")) > 1):
-        game_tweet = "CoD:" + game.split(":")[1] #CoD: Ghosts, CoD: Modern Warfare
-    if (game_tweet == "Counter-Strike" and len(game.split(":")) > 1):
-        game_tweet = "CS: " 
-        for item in game.split(":")[1].split(" "): 
-            if (len(item) > 0):
-                game_tweet += item[0] #first initial - CS:S, CS:GO
-    if (game_tweet == "StarCraft II" and len(game.split(":")) > 1):
-        game_tweet = "SC2: "
-        for item in game.split(":")[1].split(" "):
-            if (len(item) > 0):
-                game_tweet += item[0] #first initial - SC2: LotV
-    return game_tweet
-
-#send_tweet
-#   if <user> is believed to be viewer botting, sends a tweet via the twitter module
-#user is a string representing http://www.twitch.tv/<user>
-#ratio is <user>'s chatter to viewer ratio
-#game is the game they're playing (Unabbreviated: ex. Starcraft II: Heart of the Swarm
-#viewers is how many viewers the person has - can be used to get number of chatters, with ratio
-def send_tweet(user, ratio, game, viewers):
-    global tweetmode
-    name = "http://www.twitch.tv/" + user
-    if (ratio < ratio_threshold):
-        found = 0
-        for item in confirmed:
-            if item[0] == name:
-                item[1] = ratio #update the ratio and game each time
-                item[2] = game
-        for item in suspicious:
-            if item[0] == name:
-                item[1] = ratio #update the ratio and game each time
-                item[2] = game
-                found = 1
-        if found:
-            suspicious.remove([name, ratio, game])
-            if (tweetmode):
-                print "Tweeting!"
-            else:
-                print "(Not actually Tweeting this):"
-            confirmed.append([name, ratio, game])
-            originame = name[21:]
-            chatters = int(viewers * ratio) # TODO: something more intelligent than chatters, take into account the average game ratio and calculate the expected number of viewers
-            game_tweet = get_game_tweet(game)
-            #TODO: change expected_ratio to be each game - is this a good idea? avg skewed by botting viewers...
-            fake_viewers = int(viewers - (1 / expected_ratio) * chatters)
-            estimate = "(~" + str(fake_viewers) + " extra viewers of "+ str(viewers) + " total)"
-            tweet = name + " (" + game_tweet + ") might have a false-viewer bot " + estimate
-            if (ratio < 0.15):
-                tweet = name + " (" + game_tweet + ") appears to have a false-viewer bot " + estimate
-            if (ratio < 0.09):
-                tweet = name + " (" + game_tweet + ") almost definitely has a false-viewer bot " + estimate
-            if (len(tweet) + 2 + len(originame) <= 140): #max characters in a tweet
-                tweet = tweet + " #" + originame
-            print("Tweeting: '" + tweet + "'")
-            if (tweetmode):
-                try:
-                    twitter.update_status(status=tweet)
-                except:
-                    print "couldn't tweet :("
-                    pass
-        if not found:
-            for item in confirmed:
-                if (item[0] == name):
-                    return
-            suspicious.append([name, ratio, game])
-
 #game_ratio
 #   returns the average chatter:viewer ratio for a certain game
 #game is a string - game to search
 def game_ratio(game):
+    global tweetmode
     try:
         r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
     except:
@@ -244,7 +144,8 @@ def game_ratio(game):
             ratio = user_ratio(user)
             if (ratio == 0):
                 print "ratio is 0... abort program?"
-            send_tweet(user, ratio, game, viewers)
+            handle_twitter.send_tweet(user, ratio, game, viewers, tweetmode, 
+                                      ratio_threshold, confirmed, suspicious)
             avg += ratio
             count += 1
     else:
@@ -258,19 +159,25 @@ def game_ratio(game):
 #remove_offline:
 #   removes users from the suspiciuos and confirmed lists if they are no longer botting
 def remove_offline():
+    flag = False
     for item in suspicious:
         name = item[0]
         originame = name[21:] #remove the http://www.twitch.tv/
-        if (user_viewers(originame) < user_threshold_2):
+        if (user_ratio(originame) > 0.35 or user_viewers(originame) < 150):
             print originame + " appears to have stopped botting! removing from suspicious list"
             suspicious.remove(item)
 
     for item in confirmed:
+        if (len(confirmed)):
+            flag = True
         name = item[0]
         originame = name[21:] #remove the http://www.twitch.tv/
-        if (user_ratio(originame) > 0.40 or user_viewers(originame) == 0):
+        if (user_ratio(originame) > 0.35 or user_viewers(originame) < 150):
             print originame + " appears to have stopped botting! removing from confirmed list"
             confirmed.remove(item)
+    if (flag):
+        print
+        print
 
 #search_all_games:
 #   loops through all the games via the Twitch API, checking for their average ratios

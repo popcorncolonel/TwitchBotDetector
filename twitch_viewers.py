@@ -12,7 +12,6 @@ def removeNonAscii(s): return "".join([x if ord(x) < 128 else '?' for x in s])
 
 r = requests.get('https://api.twitch.tv/kraken/games/top' +
                  '?limit=' + limit)
-r.text
 flag = 1
 while flag: #jank bugfix - sometimes can't read json
     try:
@@ -40,15 +39,18 @@ def user_viewers(user):
     if (type(req) == int):
         print req
         print "wat. line 35 twitch_viewers"
+    i = 0
     while (req.status_code != 200):
         print (str(req.status_code) + " viewerlist unavailable")
         try:
             req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
         except:
             pass
-        if (req.status_code == 422 and restart_on_failure):
+        if (i > 5 and req.status_code == 422 and restart_on_failure):
             print "RESTARTING PROGRAM!!!!!!!!!!!!!!!!!!!!! 422 ERROR"
             restart_program()
+        if (req.status_code == 422):
+            i += 1
     try:
         userdata = req.json()
     except ValueError:
