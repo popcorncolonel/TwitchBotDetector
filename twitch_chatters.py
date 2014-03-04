@@ -13,8 +13,6 @@ tweetmode = False #true if you want it to tweet, false if you don't
 alternative_chatters_method = True  #True if you want to use faster but potentially unreliable
                                     #method of getting number of chatters for a user
 user_threshold = 200   #initial necessity for confirmation
-user_threshold_2 = 150 #once a streamer has been confirmed at 200 viewers, then they need to go
-                       #below this threshold to be taken off
 ratio_threshold = 0.16 #if false positives, lower this number. if false negatives, raise this number
 expected_ratio = 0.7 #eventually tailor this to each game/channel. Tailoring to channel might be hard.
 
@@ -32,10 +30,12 @@ exceptions = get_exceptions()
 #user is a string representing http://www.twitch.tv/<user>
 def get_chatters2(user):
     chatters2 = 0
+    #print "chatters2...",
     try:
         chatters2 = chat_count(user)
     except socket.error as error:
         return get_chatters2(user)
+    #print "done"
     return chatters2
 
 #user_chatters:
@@ -80,7 +80,7 @@ def user_ratio(user):
     chatters2 = get_chatters2(user)
     viewers = user_viewers(user)
     if (viewers != 0):
-        ratio = float(chatters) / viewers
+        ratio = float(max(chatters, chatters2)) / viewers
         print user + ": " + str(chatters) + " / " + str(viewers) + " = %0.3f" %ratio,
         print "(%d - %d)" %(chatters2, chatters),
         if (chatters != 0):
@@ -163,7 +163,8 @@ def remove_offline():
     for item in suspicious:
         name = item[0]
         originame = name[21:] #remove the http://www.twitch.tv/
-        if (user_ratio(originame) > 0.35 or user_viewers(originame) < 150):
+        if (user_ratio(originame) > (2 * ratio_threshold) or 
+                user_viewers(originame) < user_threshold):
             print originame + " appears to have stopped botting! removing from suspicious list"
             suspicious.remove(item)
 
@@ -172,7 +173,7 @@ def remove_offline():
             flag = True
         name = item[0]
         originame = name[21:] #remove the http://www.twitch.tv/
-        if (user_ratio(originame) > 0.35 or user_viewers(originame) < 150):
+        if (user_ratio(originame) > (2 * ratio_threshold) or user_viewers(originame) < 50):
             print originame + " appears to have stopped botting! removing from confirmed list"
             confirmed.remove(item)
     if (flag):
@@ -211,10 +212,10 @@ def search_all_games():
         print "Total of " + str(len(suspicious) + len(confirmed)) + " botters"
         print
         print
-    print "looping back around :D"
 
 #main loop 
 while True:
     search_all_games()
     remove_offline()
+    print "looping back around :D"
 

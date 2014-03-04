@@ -67,7 +67,7 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
             fake_viewers = int(viewers - (1 / expected_ratio) * chatters)
             estimate = "(~" + str(fake_viewers) + " extra viewers of "+ str(viewers) + " total)"
             tweet = name + " (" + game_tweet + ") might have a false-viewer bot " + estimate
-            if (ratio < 0.15):
+            if (ratio < 0.13):
                 tweet = name + " (" + game_tweet + ") appears to have a false-viewer bot " + estimate
             if (ratio < 0.09):
                 tweet = name + " (" + game_tweet + ") almost definitely has a false-viewer bot " + estimate

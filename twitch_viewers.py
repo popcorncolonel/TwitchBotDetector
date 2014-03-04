@@ -46,7 +46,7 @@ def user_viewers(user):
             req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
         except:
             pass
-        if (i > 5 and req.status_code == 422 and restart_on_failure):
+        if (i > 15 and req.status_code == 422 and restart_on_failure):
             print "RESTARTING PROGRAM!!!!!!!!!!!!!!!!!!!!! 422 ERROR"
             restart_program()
         if (req.status_code == 422):
