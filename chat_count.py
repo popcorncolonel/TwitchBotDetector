@@ -7,6 +7,10 @@ from twitch_viewers import removeNonAscii
 names_num = "353"
 end_names_num = "366"
 
+port1 = 6667
+port2 = 80
+port3 = 443
+
 i = 0#
 def count_users(full_msg):
     data = full_msg.split("\r\n")
@@ -40,7 +44,7 @@ def chat_count(chatroom, verbose=False):
     nick = get_username()
     PASS = get_password()
     sock = socket.socket()
-    sock.connect(("irc.twitch.tv",6667))
+    sock.connect(("irc.twitch.tv",port2))
     sock.send("PASS " + PASS + "\r\n")
     sock.send("USER " + nick + " 0 * :" + nick + "\r\n")
     sock.send("NICK " + nick + "\r\n")
