@@ -1,16 +1,23 @@
 from twython import Twython
-from get_passwords import get_passwords
+from get_passwords import get_passwords, get_twitter_name
+import twitter
 
 expected_ratio = 0.70
 
 passes = get_passwords()
+
+#must be a string - ex "day9tv"
+twitter_name = get_twitter_name() 
 
 APP_KEY =            passes[0]
 APP_SECRET =         passes[1]
 OAUTH_TOKEN =        passes[2]
 OAUTH_TOKEN_SECRET = passes[3]
 
-twitter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
+tweetter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
+api = twitter.Api(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET) 
+
+num_recent_tweets = 7
 
 #get_game_tweet:
 #   tailors the name of the game (heh) to what is readable and short enough to tweet
@@ -32,7 +39,6 @@ def get_game_tweet(game):
             if (len(item) > 0):
                 game_tweet += item[0] #first initial - SC2: LotV
     return game_tweet
-
 
 #send_tweet
 #   if <user> is believed to be viewer botting, sends a tweet via the twitter module
@@ -73,13 +79,26 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
                 tweet = name + " (" + game_tweet + ") almost definitely has a false-viewer bot " + estimate
             if (len(tweet) + 2 + len(originame) <= 140): #max characters in a tweet
                 tweet = tweet + " #" + originame
-            print("Tweeting: '" + tweet + "'")
-            if (tweetmode):
-                try:
-                    twitter.update_status(status=tweet)
-                except:
-                    print "couldn't tweet :("
-                    pass
+            if (not tweetmode):
+                print "Not",
+            print("Tweet text: '" + tweet + "'")
+            statuses = api.GetUserTimeline(twitter_name)[:num_recent_tweets]
+            found_rec_tweet = False #did we recently tweet about this person?
+            for status in statuses:
+                names = status.text.split("#")
+                if (len(names) == 2):
+                    if (names[1] == originame):
+                        found_rec_tweet = True
+                        break
+            if (found_rec_tweet):
+                print "Not tweeting because I found recent tweet for", originame
+            else:
+                if (tweetmode):
+                    try:
+                        tweetter.update_status(status=tweet)
+                    except:
+                        print "couldn't tweet :("
+                        pass
         if not found:
             for item in confirmed:
                 if (item[0] == name):

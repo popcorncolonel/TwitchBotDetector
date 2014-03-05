@@ -30,12 +30,14 @@ exceptions = get_exceptions()
 #user is a string representing http://www.twitch.tv/<user>
 def get_chatters2(user):
     chatters2 = 0
-    #print "chatters2...",
+    if (not tweetmode):
+        print "chatters2...",
     try:
         chatters2 = chat_count(user)
     except socket.error as error:
         return get_chatters2(user)
-    #print "done"
+    if (not tweetmode):
+        print "done"
     return chatters2
 
 #user_chatters:
@@ -80,8 +82,9 @@ def user_ratio(user):
     chatters2 = get_chatters2(user)
     viewers = user_viewers(user)
     if (viewers != 0):
-        ratio = float(max(chatters, chatters2)) / viewers
-        print user + ": " + str(chatters) + " / " + str(viewers) + " = %0.3f" %ratio,
+        maxchat = max(chatters, chatters2)
+        ratio = float(maxchat) / viewers
+        print user + ": " + str(maxchat) + " / " + str(viewers) + " = %0.3f" %ratio,
         print "(%d - %d)" %(chatters2, chatters),
         if (chatters != 0):
             diff = abs(chatters2 - chatters)
