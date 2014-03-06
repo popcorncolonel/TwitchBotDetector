@@ -24,6 +24,22 @@ def restart_program():
     python = sys.executable
     os.execl(python, python, * sys.argv)
 
+#user_total_views: 
+#   returns the number of total views twitch.tv/user has had.
+#user is a string representing http://www.twitch.tv/<user>
+def user_total_views(user):
+    try:
+        r = requests.get("https://api.twitch.tv/kraken/search/channels?q=" + user)
+    except:
+        return user_total_views(user)
+    while(r.status_code != 200)
+        try:
+            r = requests.get("https://api.twitch.tv/kraken/search/channels?q=" + user)
+        except:
+            return user_total_views(user)
+    chan = r.json()
+    return chan['channels'][0]['views']
+
 #user_viewers: 
 #   returns the number of viewers twitch.tv/user currently has. returns 0 if offline.
 #user is a string representing http://www.twitch.tv/<user>
