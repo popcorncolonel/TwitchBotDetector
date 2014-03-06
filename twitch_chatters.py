@@ -5,6 +5,7 @@ from twitch_viewers import user_viewers, removeNonAscii
 import handle_twitter
 from get_exceptions import get_exceptions
 from chat_count import chat_count
+import urllib2
 
 suspicious = []
 confirmed = []
@@ -30,14 +31,10 @@ exceptions = get_exceptions()
 #user is a string representing http://www.twitch.tv/<user>
 def get_chatters2(user):
     chatters2 = 0
-    if (not tweetmode):
-        print "chatters2...",
     try:
         chatters2 = chat_count(user)
     except socket.error as error:
         return get_chatters2(user)
-    if (not tweetmode):
-        print "done"
     return chatters2
 
 #user_chatters:
@@ -70,6 +67,34 @@ def user_chatters(user):
         return user_chatters(user)
     return chatters
 
+#dota2lounge_list:
+#   returns the list of live Twitch streams embedded on dota2lounge.
+#   this is useful because, at any given time, there could be tens of thousands
+#   of users watching a Twitch stream through d2l, and I don't want to false positive these streams.
+def get_dota2lounge_list():
+    u = urllib2.urlopen('http://dota2lounge.com/index.php').read().split("matchmain")
+    string = "LIVE</span>"
+    list1 = filter(lambda x: string in x, u) 
+
+    list2 = []
+    string2 = "match?m="
+    for item in list1:
+        item = item.split("\n")
+        for sentence in item:
+            if (string2 in sentence):
+                list2.append(sentence)
+
+    d2l_list = []
+
+    for item in list2:
+        url = "http://dota2lounge.com/" + item.split("\"")[1]
+        u2 = urllib2.urlopen(url).read().split("\n")
+        list3 = filter(lambda x: "twitch.tv/widgets/live_embed_player.swf?channel=" in x, u2)
+        for item in list3:
+            item = item.split("channel=")[1].split("\"")[0].lower()
+            d2l_list.append(item)
+    return d2l_list
+
 #user_ratio:
 #   returns the ratio of chatters to viewers in <user>'s channel
 #user is a string representing http://www.twitch.tv/<user>
@@ -77,6 +102,10 @@ def user_ratio(user):
     exceptions = get_exceptions()
     if (user in exceptions):
         print user, "is alright :)"
+        return 1
+    d2l_list = get_dota2lounge_list()
+    if (user in d2l_list):
+        print user, "is being embedded in dota2lounge. nogo"
         return 1
     chatters = user_chatters(user)
     chatters2 = get_chatters2(user)
@@ -112,7 +141,9 @@ def game_ratio(game):
         r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
     except:
         print "uh oh caught exception when connecting. try again. see game_ratio(game)."
-        game_ratio(game)
+        return game_ratio(game)
+    if (not r):
+        return game_ratio(game)
     while (r.status_code != 200):
         print r.status_code, ", service unavailable"
         r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
@@ -160,7 +191,7 @@ def game_ratio(game):
     return avg
 
 #remove_offline:
-#   removes users from the suspiciuos and confirmed lists if they are no longer botting
+#   removes users from the suspicious and confirmed lists if they are no longer botting
 def remove_offline():
     flag = False
     for item in suspicious:
