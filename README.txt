@@ -21,16 +21,17 @@ TODO:
  On average how many users are watching via the main twitch page?)
 
 -take into account the average chat viewer ratio for each game per user
+    -maybe a bad idea - skewed by bots
 
 -long-term database storage of average viewer count
 
 -If the stream has more viewers than followers, there may be cause for concern.
 
+-more chatters than viewers, plus weird names/inactive chat => suspicion
+
 2) Keep the program running when my internet crashes. Currently the program
- just exits.
+ just exits. (this is in progress - it restarts if the twitch api goes down)
 
 3) Overhaul the tweet removal system, or rethink it in general. Should it
 delete old tweets that were saying that the user was botting?
-
-4) Separate twitter module. Why is it even in twitch_chatters.
 
