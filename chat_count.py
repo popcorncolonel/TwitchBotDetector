@@ -10,14 +10,22 @@ end_names_num = "366"
 port1 = 6667
 port2 = 80
 port3 = 443
+default_port = port2
 
 i = 0#
 def count_users(full_msg):
     data = full_msg.split("\r\n")
     count = 0
+    num_names_that_end_in_underscore = 0 #yeah...
+    xx_count = 0
     for namegroup in data:
         if ("End of /NAMES list" in namegroup or
             "tmi.twitch.tv " + end_names_num in namegroup):
+            underscore_ratio = num_names_that_end_in_underscore / float(count)  
+            xx_ratio = xx_count / float(count)
+            if (underscore_ratio > 0.05 or xx_ratio > 0.015): 
+                print "ratio that end in _:", underscore_ratio
+                print "ratio that start with xx:", xx_ratio
             if (count == 65959): #This was a number I was getting repeatedly
                 print "what."    #When looking at riotgames (300k viewers).
                 print namegroup  #I still don't know why it is/was happening, so
@@ -27,6 +35,8 @@ def count_users(full_msg):
         if (names_num in namegroup):
             names = namegroup[5:]
             count += len(names)
+            num_names_that_end_in_underscore += len(filter(lambda x: x[-1] == "_" and x[-2] != "_", names))
+            xx_count += len(filter(lambda x: x[:2] == "xx", names))
     if (count == 2):
         print full_msg
     if (count == 65959):
@@ -44,7 +54,7 @@ def chat_count(chatroom, verbose=False):
     nick = get_username()
     PASS = get_password()
     sock = socket.socket()
-    sock.connect(("irc.twitch.tv",port2))
+    sock.connect(("irc.twitch.tv", default_port))
     sock.send("PASS " + PASS + "\r\n")
     sock.send("USER " + nick + " 0 * :" + nick + "\r\n")
     sock.send("NICK " + nick + "\r\n")
