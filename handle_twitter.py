@@ -2,7 +2,7 @@ from twython import Twython
 from get_passwords import get_passwords, get_twitter_name
 import twitter
 
-expected_ratio = 0.70
+expected_ratio = 0.60
 
 passes = get_passwords()
 

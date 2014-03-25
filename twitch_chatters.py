@@ -1,7 +1,7 @@
 import socket
 import requests
 import sys # for printing to stderr
-from twitch_viewers import user_viewers, removeNonAscii
+from twitch_viewers import user_viewers, removeNonAscii, user_total_views
 import handle_twitter
 from get_exceptions import get_exceptions
 from chat_count import chat_count
@@ -11,8 +11,9 @@ suspicious = []
 confirmed = []
 
 tweetmode = False #true if you want it to tweet, false if you don't
-alternative_chatters_method = True  #True if you want to use faster but potentially unreliable
+alternative_chatters_method = not tweetmode  #True if you want to use faster but potentially unreliable
                                     #method of getting number of chatters for a user
+d2l_check = False #check dota 2 lounge's website for live matches?
 user_threshold = 200   #initial necessity for confirmation
 ratio_threshold = 0.16 #if false positives, lower this number. if false negatives, raise this number
 expected_ratio = 0.7 #eventually tailor this to each game/channel. Tailoring to channel might be hard.
@@ -103,10 +104,11 @@ def user_ratio(user):
     if (user in exceptions):
         print user, "is alright :)"
         return 1
-    d2l_list = get_dota2lounge_list()
-    if (user in d2l_list):
-        print user, "is being embedded in dota2lounge. nogo"
-        return 1
+    if (d2l_check):
+        d2l_list = get_dota2lounge_list()
+        if (user in d2l_list):
+            print user, "is being embedded in dota2lounge. nogo"
+            return 1
     chatters = user_chatters(user)
     chatters2 = get_chatters2(user)
     viewers = user_viewers(user)
@@ -124,6 +126,8 @@ def user_ratio(user):
             print " (%0.0f%% error)!" %error,
             if (error < 99 and diff > 10):
                 print "!!!!!!!!!!!!!!!!!!!" #if my chatters module goes wrong, i want to notice it.
+            if (ratio > 1):
+                print "????????????"
             else:
                 print
         else:
@@ -226,7 +230,8 @@ def search_all_games():
         search_all_games()
     for i in range(0,len(topdata['top'])):
         game = removeNonAscii(topdata['top'][i]['game']['name'])
-        print "__" + game + "__"
+        print "__" + game + "__", 
+        print "(tweetmode off)" if not tweetmode else ""
         ratio = game_ratio(game)
         print
         print "Average ratio for " + game + ": %0.3f" %ratio

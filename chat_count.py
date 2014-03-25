@@ -35,7 +35,7 @@ def count_users(full_msg):
         if (names_num in namegroup):
             names = namegroup[5:]
             count += len(names)
-            num_names_that_end_in_underscore += len(filter(lambda x: x[-1] == "_" and x[-2] != "_", names))
+            num_names_that_end_in_underscore += len(filter(lambda x: x[-1] == "_", names))
             xx_count += len(filter(lambda x: x[:2] == "xx", names))
     if (count == 2):
         print full_msg

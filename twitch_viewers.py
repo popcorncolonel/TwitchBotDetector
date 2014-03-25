@@ -32,13 +32,14 @@ def user_total_views(user):
         r = requests.get("https://api.twitch.tv/kraken/search/channels?q=" + user)
     except:
         return user_total_views(user)
-    while(r.status_code != 200)
+    while(r.status_code != 200):
         try:
             r = requests.get("https://api.twitch.tv/kraken/search/channels?q=" + user)
         except:
             return user_total_views(user)
     chan = r.json()
-    return chan['channels'][0]['views']
+    if (chan['channels'][0]['name'] == user):
+        return chan['channels'][0]['views']
 
 #user_viewers: 
 #   returns the number of viewers twitch.tv/user currently has. returns 0 if offline.
