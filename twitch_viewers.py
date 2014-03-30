@@ -66,6 +66,9 @@ def user_viewers(user):
         if (i > 15 and req.status_code == 422 and restart_on_failure):
             print "RESTARTING PROGRAM!!!!!!!!!!!!!!!!!!!!! 422 ERROR"
             restart_program()
+        elif i > 15 and req.status_code == 422:
+            print "quitting fn due to", user
+            return 0
         if (req.status_code == 422):
             i += 1
     try:
