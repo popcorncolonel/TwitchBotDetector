@@ -96,11 +96,24 @@ def get_dota2lounge_list():
             d2l_list.append(item)
     return d2l_list
 
+# very ugly web scraping :)))
+def get_frontpage_users():
+    u = urllib2.urlopen('http://www.twitch.tv').read().split('data-channel=')
+    users = []
+    for channel in u:
+        name = channel.split("'")[1]
+        if name not in users:
+            users.append(name)
+    return users
+
 #user_ratio:
 #   returns the ratio of chatters to viewers in <user>'s channel
 #user is a string representing http://www.twitch.tv/<user>
 def user_ratio(user):
     exceptions = get_exceptions()
+    if user in get_frontpage_users():
+        print "nope,", user, "is on the front page of twitch."
+        return 1
     if (user in exceptions):
         print user, "is alright :)"
         return 1

@@ -24,6 +24,8 @@ num_recent_tweets = 7
 #game is a string
 def get_game_tweet(game):
     game_tweet = game.split(":")[0] #manually shorten the tweet, many of these by inspection
+    if (game_tweet[:17] == "The Elder Scrolls"):
+        game_tweet = "TES:" + game_tweet[17:] #TES: Online
     if (game_tweet == "League of Legends"):
         game_tweet = "LoL"
     if (game_tweet == "Call of Duty" and len(game.split(":")) > 1):

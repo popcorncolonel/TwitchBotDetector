@@ -3,7 +3,7 @@ import json
 import sys # for printing to stderr and restarting program
 import os
 
-restart_on_failure = True #Be careful with this. "True" might result in a lot of repeated tweets.
+restart_on_failure = False 
 MAX = 100
 limit = str(MAX)
 offset = str(0)
@@ -51,8 +51,6 @@ def user_viewers(user):
         req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
     except:
         return user_viewers(user)
-    if not req:
-        print "infinite loop? check here."
     if (type(req) == int):
         print req
         print "wat. line 35 twitch_viewers"

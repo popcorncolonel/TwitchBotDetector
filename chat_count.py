@@ -23,7 +23,7 @@ def count_users(full_msg):
             "tmi.twitch.tv " + end_names_num in namegroup):
             underscore_ratio = num_names_that_end_in_underscore / float(count)  
             xx_ratio = xx_count / float(count)
-            if (underscore_ratio > 0.05 or xx_ratio > 0.015): 
+            if False and (underscore_ratio > 0.05 or xx_ratio > 0.015): 
                 print "ratio that end in _:", underscore_ratio
                 print "ratio that start with xx:", xx_ratio
             if (count == 65959): #This was a number I was getting repeatedly
