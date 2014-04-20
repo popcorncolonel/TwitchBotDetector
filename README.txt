@@ -30,8 +30,12 @@ TODO:
 -more chatters than viewers, plus weird names/inactive chat => suspicion
 
 2) Keep the program running when my internet crashes. Currently the program
- just exits. (this is in progress - it restarts if the twitch api goes down)
+ just exits.
 
 3) Overhaul the tweet removal system, or rethink it in general. Should it
 delete old tweets that were saying that the user was botting?
+
+4) New heuristic for detecting botters: very low average follower count in
+chat (regarding how many people each user is following) is indicitave of
+chatbots. Also if a lot of the bots have the exact same number (say, under 5)
 
