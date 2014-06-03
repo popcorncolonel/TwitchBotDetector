@@ -1,0 +1,5 @@
+#info for twitch servers
+def get_username():
+    return "testuser"
+def get_password():
+    return "oauth:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"

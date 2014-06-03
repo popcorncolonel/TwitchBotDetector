@@ -59,13 +59,13 @@ def user_viewers(user):
         except:
             print "error getting viewers for " + user
             pass
-        if (i > 15 and req.status_code == 422 and restart_on_failure):
+        if i > 15 and restart_on_failure:
             print "RESTARTING PROGRAM!!!!!!!!!!!!!!!!!!!!! 422 ERROR"
             restart_program()
-        elif i > 15 and req.status_code == 422:
+        elif i > 15:
             print "quitting fn due to", user
             return 0
-        if (req.status_code == 422):
+        if req.status_code == 422 or req.status_code == 404:
             i += 1
     try:
         userdata = req.json()

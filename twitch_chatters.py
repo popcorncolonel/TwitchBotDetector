@@ -12,7 +12,7 @@ suspicious = []
 confirmed = []
 
 debug = False #debug mode with extraneous error messages and information
-tweetmode = True #true if you want it to tweet, false if you don't
+tweetmode = False #true if you want it to tweet, false if you don't
 alternative_chatters_method = False  #True if you want to use faster but potentially unreliable
                                      #method of getting number of chatters for a user
 d2l_check = False #check dota 2 lounge's website for live matches?
@@ -61,12 +61,14 @@ def user_chatters(user):
             return chatters2
     try:
         while (req.status_code != 200):
-            chatters2 = get_chatters2(user)
+            print "----TMI error", req.status_code, 
             if (alternative_chatters_method):
+                chatters2 = get_chatters2(user)
+                print "getting", user + " (module returned %d)-----" %chatters2
                 if (chatters2 > 1):
                     return chatters2
-            print "----TMI error", req.status_code, 
-            print "getting", user + " (module returned %d)-----" %chatters2
+            else:
+                print "getting", user + "-----" 
             req = requests.get("http://tmi.twitch.tv/group/user/" + user)
         try:
             chat_data = req.json()
@@ -74,7 +76,9 @@ def user_chatters(user):
             print "couldn't json in getting " + user + "'s chatters; recursing"
             return user_chatters(user)
         chatters = chat_data['chatter_count']
-    except TypeError:
+    except (KeyboardInterrupt, SystemExit):
+        raise
+    except:
         print "recursing in user_chatters, got some kinda TypeError"
         return user_chatters(user)
     return chatters
@@ -177,8 +181,6 @@ def user_ratio(user):
                 print "????????????"
             else:
                 print
-        else:
-            print
     else: 
         return 1 # user is offline
     return ratio
@@ -217,7 +219,7 @@ def game_ratio(game):
             gamedata = r.json()
         except ValueError:
             print "couldn't json; recursing"
-            return game_ratio(game)
+            continue
     if len(gamedata['streams']) > 0:
         for i in range(0, len(gamedata['streams'])):
             viewers =  gamedata['streams'][i]['viewers']
@@ -246,6 +248,7 @@ def game_ratio(game):
 #remove_offline:
 #   removes users from the suspicious and confirmed lists if they are no longer botting
 def remove_offline():
+    print "==REMOVING OFFLINE=="
     flag = False
     for item in suspicious:
         name = item[0]
@@ -254,6 +257,7 @@ def remove_offline():
                 user_viewers(originame) < user_threshold):
             print originame + " appears to have stopped botting! removing from suspicious list"
             suspicious.remove(item)
+        print
 
     for item in confirmed:
         if confirmed != []:
@@ -276,6 +280,9 @@ def search_all_games():
             print "trying to get top games..."
             topreq = requests.get("https://api.twitch.tv/kraken/games/top?limit=" + str(num_games))
         topdata = topreq.json()
+    except requests.exceptions.ConnectionError:
+        print "connection error trying to get the game list. recursing :)))"
+        return search_all_games
     except ValueError:
         print "nope. recursing. ~276 twitch_chatters.py"
         search_all_games()
@@ -283,7 +290,13 @@ def search_all_games():
         game = removeNonAscii(topdata['top'][i]['game']['name'])
         print "__" + game + "__", 
         print "(tweetmode off)" if not tweetmode else ""
+        prev_suspicious = suspicious[:] #make a duplicate of suspicious before things are added to the new suspicious list
         ratio = game_ratio(game)
+        for item in suspicious:
+            if item[2] == game and item in prev_suspicious:
+                suspicious.remove(item)
+                print item[0][10:], "was found to have stopped botting", game + "!",
+                print " removing from suspicious list!"
         print
         print "Average ratio for " + game + ": %0.3f" %ratio
         print
@@ -291,13 +304,13 @@ def search_all_games():
         if len(suspicious) == 0:
             print "No one :D"
         for item in suspicious:
-            print "%0.3f:" %item[1], item[0], item[2]
+            print "%0.3f:" %item[1], item[0][10:], "      ", item[2]
         print
         print "We have confirmed: "
         if len(confirmed) == 0:
             print "No one :D"
         for item in confirmed:
-            print "%0.3f:" %item[1], item[0]
+            print "%0.3f:" %item[1], item[0][10:], "      ", item[2]
         print
         print "Total of " + str(len(suspicious) + len(confirmed)) + " botters"
         print

@@ -14,19 +14,19 @@ Go to http://www.twitter.com/BotDetectorBot!
 
 TODO:
 1) More sophisticated detection methods, including:
-    -sharp, significant increases in viewers without proportional increases in
+    -Sharp, significant increases in viewers without proportional increases in
      the number of chat users (take into account videos in the front page of
      Twitch.. maybe check the front page of Twitch to see which user is there?
      On average how many users are watching via the main twitch page?)
 
-    -take into account the average chat viewer ratio for each game per user
+    -Take into account the average chat viewer ratio for each game per user
         -maybe a bad idea - skewed by bots
 
-    -long-term database storage of average viewer count
+    -Long-term database storage of average viewer count
 
     -If the stream has more viewers than followers, there may be cause for concern.
 
-    -more chatters than viewers, plus weird names/inactive chat => suspicion
+    -More chatters than viewers, plus weird names/inactive chat => suspicion
 
 2) Keep the program running when my internet crashes. Currently the program
    just exits.

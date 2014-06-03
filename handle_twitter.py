@@ -17,7 +17,7 @@ OAUTH_TOKEN_SECRET = passes[3]
 tweetter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
 api = twitter.Api(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET) 
 
-num_recent_tweets = 15
+num_recent_tweets = 50
 
 #get_game_tweet:
 #   tailors the name of the game (heh) to what is readable and short enough to tweet
@@ -51,7 +51,7 @@ def get_game_tweet(game):
 def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed, suspicious):
     name = "twitch.tv/" + user
     if (ratio < ratio_threshold):
-        found = 0
+        found = False #Whether or not the user has been found in the *suspicious* list
         for item in confirmed:
             if item[0] == name:
                 item[1] = ratio #update the ratio and game each time
@@ -60,8 +60,9 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
             if item[0] == name:
                 item[1] = ratio #update the ratio and game each time
                 item[2] = game
-                found = 1
+                found = True
         if found:
+            print
             suspicious.remove([name, ratio, game])
             if (tweetmode):
                 print "Tweeting!"
@@ -83,7 +84,7 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
             if not tweetmode:
                 print "Not",
             print("Tweet text: '" + tweet + "'")
-            statuses = api.GetUserTimeline(twitter_name)[:num_recent_tweets]
+            statuses = api.GetUserTimeline(twitter_name, count=num_recent_tweets)[:num_recent_tweets]
             found_rec_tweet = False #did we recently tweet about this person?
             for status in statuses:
                 names = status.text.split("#")
@@ -97,12 +98,19 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
                 if tweetmode:
                     try:
                         tweetter.update_status(status=tweet)
+                        time.sleep(10) #rate limiting
+                    except (KeyboardInterrupt, SystemExit):
+                        raise
                     except:
                         print "couldn't tweet :("
                         pass
         if not found:
             for item in confirmed:
                 if item[0] == name:
+                    print
                     return
             suspicious.append([name, ratio, game])
+            print " <-- added to suspicious for this"
+    else:
+        print
 
