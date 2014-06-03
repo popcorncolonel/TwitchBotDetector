@@ -35,6 +35,7 @@ TODO:
    Should it delete old tweets that were saying that the user was botting?
    See http://www.twitter.com/LiveBotDetector, or 
        http://github.com/popcorncolonel/LiveBotDetector
+   Website version coming soon™
 
 4) New heuristic for detecting chatbots: very low average follower count in
    chat (regarding how many people each user is following) is indicative of
