@@ -7,7 +7,8 @@ surprisingly accurate. Alternative bot detection methods are listed below.
 I still don't know how to deal with streams with fake chat users, but
 I'm working on learning some potential features that can be used to detect
 them with Machine Learning. Let me know if you see any patters in streams with 
-fake chatters by [emailing me](popcorncolonel@gmail.com)!
+fake chatters by [emailing me](popcorncolonel@gmail.com)! Also feel free to 
+contact me with questions/anything at that email address.
 
 TL;DR:
 Go to http://www.twitter.com/BotDetectorBot!
@@ -35,7 +36,7 @@ TODO:
    Should it delete old tweets that were saying that the user was botting?
    See http://www.twitter.com/LiveBotDetector, or 
        http://github.com/popcorncolonel/LiveBotDetector
-   Website version coming soon™
+   Website version coming soonï¿½
 
 4) New heuristic for detecting chatbots: very low average follower count in
    chat (regarding how many people each user is following) is indicative of
