@@ -12,7 +12,7 @@ suspicious = []
 confirmed = []
 
 debug = False #debug mode with extraneous error messages and information
-tweetmode = False #true if you want it to tweet, false if you don't
+tweetmode = True #true if you want it to tweet, false if you don't
 alternative_chatters_method = False  #True if you want to use faster but potentially unreliable
                                      #method of getting number of chatters for a user
 d2l_check = False #check dota 2 lounge's website for live matches?
@@ -45,7 +45,7 @@ def get_chatters2(user):
 #user_chatters:
 #   returns the number of chatters in user's Twitch chat
 #user is a string representing http://www.twitch.tv/<user>
-def user_chatters(user):
+def user_chatters(user, depth=0):
     chatters = 0
     chatters2 = 0
     try:
@@ -54,7 +54,7 @@ def user_chatters(user):
         raise
     except:
         print "couldn't get users for " + user + "; recursing"
-        return user_chatters(user)
+        return user_chatters(user, depth+1)
     if alternative_chatters_method:
         chatters2 = get_chatters2(user)
         if (chatters2 > 1):
@@ -69,18 +69,18 @@ def user_chatters(user):
                     return chatters2
             else:
                 print "getting", user + "-----" 
-            req = requests.get("http://tmi.twitch.tv/group/user/" + user)
+            return user_chatters(user, depth+1)
         try:
             chat_data = req.json()
         except ValueError:
             print "couldn't json in getting " + user + "'s chatters; recursing"
-            return user_chatters(user)
+            return user_chatters(user, depth+1)
         chatters = chat_data['chatter_count']
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
         print "recursing in user_chatters, got some kinda TypeError"
-        return user_chatters(user)
+        return user_chatters(user, depth+1)
     return chatters
 
 #dota2lounge_list:
@@ -146,21 +146,21 @@ def user_ratio(user):
     chatters2 = 0
     exceptions = get_exceptions()
     if user in get_frontpage_users():
-        print "nope,", user, "is on the front page of twitch."
+        print "nope,", user, "is on the front page of twitch.",
         return 1
     if user in exceptions:
-        print user, "is alright :)"
+        print user, "is alright :)",
         return 1
     if d2l_check:
         d2l_list = get_dota2lounge_list()
         if (user in d2l_list):
-            print user, "is being embedded in dota2lounge. nogo"
+            print user, "is being embedded in dota2lounge. nogo",
             return 1
     chatters = user_chatters(user)
     if debug:
         chatters2 = get_chatters2(user)
     viewers = user_viewers(user)
-    if viewers != 0:
+    if viewers and viewers != 0:
         maxchat = max(chatters, chatters2)
         ratio = float(maxchat) / viewers
         print user + ": " + str(maxchat) + " / " + str(viewers) + " = %0.3f" %ratio,
@@ -254,10 +254,11 @@ def remove_offline():
         name = item[0]
         originame = name[10:] #remove the http://www.twitch.tv/
         if (user_ratio(originame) > (2 * ratio_threshold) or 
-                user_viewers(originame) < user_threshold):
+                user_viewers(originame) < user_threshold/4):
             print originame + " appears to have stopped botting! removing from suspicious list"
             suspicious.remove(item)
-        print
+        else:
+            print
 
     for item in confirmed:
         if confirmed != []:
@@ -267,9 +268,12 @@ def remove_offline():
         if (user_ratio(originame) > (2 * ratio_threshold) or user_viewers(originame) < 50):
             print originame + " appears to have stopped botting! removing from confirmed list"
             confirmed.remove(item)
+        else:
+            print
     if flag:
         print
         print
+    print "looping back around :D"
 
 #search_all_games:
 #   loops through all the games via the Twitch API, checking for their average ratios
@@ -316,9 +320,4 @@ def search_all_games():
         print
         print
 
-#main loop 
-while True:
-    search_all_games()
-    remove_offline()
-    print "looping back around :D"
 

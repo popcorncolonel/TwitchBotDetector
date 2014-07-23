@@ -2,6 +2,7 @@ import requests
 import json
 import sys # for printing to stderr and restarting program
 import os
+import time
 
 restart_on_failure = False 
 
@@ -48,6 +49,7 @@ def user_viewers(user):
         raise
     except:
         print "error getting the current views for", user + "; recursing."
+        time.sleep(1)
         return user_viewers(user)
     i = 0
     while req.status_code != 200:

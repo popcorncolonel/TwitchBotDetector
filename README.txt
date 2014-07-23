@@ -11,6 +11,7 @@ fake chatters by [emailing me](popcorncolonel@gmail.com)!
 
 TL;DR:
 Go to http://www.twitter.com/BotDetectorBot!
+Program usage: "python bdb.py"
 
 TODO:
 1) More sophisticated detection methods, including:
