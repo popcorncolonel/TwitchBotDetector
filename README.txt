@@ -9,6 +9,16 @@ I'm working on learning some potential features that can be used to detect
 them with Machine Learning. Let me know if you see any patters in streams with 
 fake chatters by [emailing me](popcorncolonel@gmail.com)!
 
+Usage:
+python bdb.py
+
+Note: To run it locally (not send out tweets), set "tweetmode" to False in 
+      twitch_chatters.py.
+Modules needed (let me know if I forgot anything...):
+      [Requests](http://docs.python-requests.org/en/latest/)
+      [Twython](http://twython.readthedocs.org/en/latest/)
+      [Python-Twitter](http://code.google.com/p/python-twitter/)
+
 TL;DR:
 Go to http://www.twitter.com/BotDetectorBot!
 Program usage: "python bdb.py"
