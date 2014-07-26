@@ -8,18 +8,12 @@ from chat_count import chat_count
 import urllib2
 import webbrowser
 
+from global_consts import debug, tweetmode, alternative_chatters_method, \
+                          d2l_check, user_threshold, ratio_threshold, \
+                          expected_ratio, num_games
+
 suspicious = []
 confirmed = []
-
-debug = False #debug mode with extraneous error messages and information
-tweetmode = True #true if you want it to tweet, false if you don't
-alternative_chatters_method = False  #True if you want to use faster but potentially unreliable
-                                     #method of getting number of chatters for a user
-d2l_check = False #check dota 2 lounge's website for live matches?
-user_threshold = 200   #initial necessity for confirmation
-ratio_threshold = 0.16 #if false positives, lower this number. if false negatives, raise this number
-expected_ratio = 0.7 #eventually tailor this to each game/channel. Tailoring to channel might be hard.
-num_games = 50 #number of games to look at, sorted by viewer count
 
 # these users are known to have small chat to viewer ratios for valid reasons
 # example: chat disabled, or chat hosted not on the twitch site, or mainly viewed on 
@@ -38,7 +32,7 @@ def get_chatters2(user):
     try:
         chatters2 = chat_count(user)
     except socket.error as error:
-        print ":((( get_chatters2 line 41 on twitch_chatters"
+        print ":((( get_chatters2 line 37 on twitch_chatters"
         return get_chatters2(user)
     return chatters2
 
