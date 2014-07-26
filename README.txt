@@ -11,7 +11,7 @@ fake chatters by [emailing me](popcorncolonel@gmail.com)! Also feel free to
 contact me with questions/anything at that email address.
 
 Usage:
-python bdb.py
+"python bdb.py"
 
 Note: To run it locally (not send out tweets), set "tweetmode" to False in 
       twitch_chatters.py.
@@ -40,16 +40,13 @@ TODO:
 
     -More chatters than viewers, plus weird names/inactive chat => suspicion
 
-2) Keep the program running when my internet crashes. Currently the program
-   just exits.
-
-3) COMPLETE: Overhaul the tweet removal system, or rethink it in general. 
+2) COMPLETE: Overhaul the tweet removal system, or rethink it in general. 
    Should it delete old tweets that were saying that the user was botting?
    See http://www.twitter.com/LiveBotDetector, or 
        http://github.com/popcorncolonel/LiveBotDetector
-   Website version coming soon�
+   Website version coming soon(tm)
 
-4) New heuristic for detecting chatbots: very low average follower count in
+3) New heuristics for detecting chatbots: very low average follower count in
    chat (regarding how many people each user is following) is indicative of
    chatbots. Also if a lot of the bots have the exact same number (say, under 5)
    
