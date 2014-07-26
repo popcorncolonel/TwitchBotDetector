@@ -2,7 +2,7 @@ Essentially this is a bot that tries to detect streams with fake viewers via
 the Twitch API and the power of statistics.
 
 It looks at certain metrics such as the ratio between chatters to "viewers". I
-realize that this is not a perfect metric, but it has proven to be
+realize that this is not a perfect metric, but from what I have seen, it is
 surprisingly accurate. Alternative bot detection methods are listed below.
 I still don't know how to deal with streams with fake chat users, but
 I'm working on learning some potential features that can be used to detect
