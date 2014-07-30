@@ -1,3 +1,4 @@
+###How this works###
 Essentially this is a bot that tries to detect streams with fake viewers via
 the Twitch API and the power of statistics.
 
@@ -10,21 +11,18 @@ them with Machine Learning. Let me know if you see any patters in streams with
 fake chatters by [emailing me](mailto:popcorncolonel@gmail.com)! Also feel free to 
 contact me with questions/anything at that email address.
 
-Usage:
+###Usage###
 "python bdb.py"
 
 Note: To run it locally (not send out tweets), set "tweetmode" to False in 
       twitch_chatters.py.  
 Modules needed (let me know if I forgot anything...):
-      * [Requests](http://docs.python-requests.org/en/latest/)
-      * [Twython](http://twython.readthedocs.org/en/latest/)
-      * [Python-Twitter](http://code.google.com/p/python-twitter/)
 
-TL;DR:  
-Go to http://www.twitter.com/BotDetectorBot!  
-Program usage: "python bdb.py"
+* [Requests](http://docs.python-requests.org/en/latest/)
+* [Twython](http://twython.readthedocs.org/en/latest/)
+* [Python-Twitter](http://code.google.com/p/python-twitter/)
 
-TODO:
+###TODO###
 1) More sophisticated detection methods, including:
     -Sharp, significant increases in viewers without proportional increases in
      the number of chat users (take into account videos in the front page of
@@ -48,4 +46,8 @@ TODO:
    The main problems with these is that I need to individually access the
    Twitch servers for each chatter; this could take hours for certain streams
    with large viewer counts.
+
+###TL;DR###
+Go to http://www.twitter.com/BotDetectorBot!  
+Program usage: "python bdb.py"
 
