@@ -53,9 +53,9 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
     if (ratio < ratio_threshold):
         found = False #Whether or not the user has been found in the *suspicious* list
         for item in confirmed:
-            if item[0] == name:
-                item[1] = ratio #update the ratio and game each time
-                item[2] = game
+            if item.user == name:
+                item.ratio = ratio #update the ratio and game each time
+                item.game = game
         for item in suspicious:
             if item.user == name:
                 item.ratio = ratio #update the ratio and game each time
@@ -63,12 +63,16 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
                 found = True
         if found:
             print
-            suspicious = [item for item in suspicious if item.user != name]
             if tweetmode:
                 print "Tweeting!"
             else:
                 print "(Not actually Tweeting this):"
-            confirmed.append([name, ratio, game])
+            #move item from suspiciuos to confirmed
+            confirmed.append([item for item in suspicious if item.user == name][0]) 
+
+            #usernames in these lists are unique (you can only stream once at a time...)
+            suspicious = [item for item in suspicious if item.user != name] 
+
             chatters = int(viewers * ratio) # TODO: something more intelligent than chatters, take into account the average game ratio and calculate the expected number of viewers?
             game_tweet = get_game_tweet(game)
             #TODO: change expected_ratio to be each game - is this a good idea? avg skewed by botting viewers...

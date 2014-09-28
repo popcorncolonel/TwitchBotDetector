@@ -258,8 +258,8 @@ def remove_offline():
 
     for item in confirmed:
         if confirmed != []:
-            flag = True
-        name = item[0]
+            flag = True #flag is for styling the terminal, nothing else.
+        name = item.user
         originame = name[10:] #remove the http://www.twitch.tv/
         if (user_ratio(originame) > (2 * ratio_threshold) or user_viewers(originame) < 50):
             print originame + " appears to have stopped botting! removing from confirmed list"
@@ -310,7 +310,7 @@ def search_all_games():
         if len(confirmed) == 0:
             print "No one :D"
         for item in confirmed:
-            print "%0.3f:" %item[1], item[0][10:], "      ", item[2]
+            print "%0.3f:" %item.ratio, item.user[10:], "      ", item.game
         print
         print "Total of", len(suspicious)+len(confirmed), "botters"
         print
