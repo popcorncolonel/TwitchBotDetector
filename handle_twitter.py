@@ -101,10 +101,9 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
                         if names[1] == user:
                             found_rec_tweet = True
                             break
-            if found_rec_tweet:
-                print "Not tweeting because I found recent tweet for", user
-            else:
-                if tweetmode:
+                if found_rec_tweet:
+                    print "Not tweeting because I found recent tweet for", user
+                else:
                     try:
                         tweetter.update_status(status=tweet)
                         time.sleep(10) #rate limiting

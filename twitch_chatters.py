@@ -306,13 +306,25 @@ def search_all_games():
         if len(suspicious) == 0:
             print "No one :D"
         for item in suspicious:
-            print "%d / %d = %0.3f:" %(item.chatters, item.viewers, item.ratio,), item.user[10:], "      ", item.game
+            print "%s: %s%d / %d = %0.3f: %s" %(channel, 
+                                                " "*20-len(channel), #formatting spaces
+                                                item.chatters, item.viewers, item.ratio,
+                                                item.game
+                                               )
+            #print item.user[10:], "- %d / %d = %0.3f:" %(item.chatters, item.viewers, item.ratio,), "      ", item.game
         print
         print "We have confirmed: "
         if len(confirmed) == 0:
             print "No one :D"
         for item in confirmed:
-            print "%d / %d = %0.3f:" %(item.chatters, item.viewers, item.ratio,), item.user[10:], "      ", item.game
+            channel = item.user[10:]
+            print "%s: %s%d / %d = %0.3f: %s" %(channel, 
+                                                " "*20-len(channel), #formatting spaces
+                                                item.chatters, item.viewers, item.ratio,
+                                                item.game
+                                               )
+            #print channel+": " + " "*20-len(channel) + \
+            #        "%d / %d = %0.3f:" %(item.chatters, item.viewers, item.ratio,), item.game
         print
         print "Total of", len(suspicious)+len(confirmed), "botters"
         print
