@@ -6,4 +6,3 @@ class Botter:
         self.chatters = chatters #int
         self.viewers = viewers #int
 
-    

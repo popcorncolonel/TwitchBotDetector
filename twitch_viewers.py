@@ -34,7 +34,7 @@ def user_total_views(user):
             print "error getting the total views for", user + "; recursing."
             return user_total_views(user)
     chan = r.json()
-    if (chan['channels'][0]['name'] == user):
+    if chan['channels'][0]['name'] == user:
         return chan['channels'][0]['views']
 
 #user_viewers: 
@@ -79,7 +79,7 @@ def user_viewers(user):
         if userdata['stream']: # if the streamer is offline, userdata returns null
             viewers = userdata['stream']['viewers']
         if viewers == 0:
-            print user + " appears to be offline!"
+            print user + " appears to be offline!",
         return viewers
     else:
         print user

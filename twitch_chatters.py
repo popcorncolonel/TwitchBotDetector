@@ -7,7 +7,7 @@ from get_exceptions import get_exceptions
 from chat_count import chat_count
 import urllib2
 import webbrowser
-import botter
+from botter import Botter
 
 from global_consts import debug, tweetmode, alternative_chatters_method, \
                           d2l_check, user_threshold, ratio_threshold, \
@@ -53,15 +53,15 @@ def user_chatters(user, depth=0):
         return user_chatters(user, depth+1)
     if alternative_chatters_method:
         chatters2 = get_chatters2(user)
-        if (chatters2 > 1):
+        if chatters2 > 1:
             return chatters2
     try:
         while (req.status_code != 200):
             print "----TMI error", req.status_code, 
-            if (alternative_chatters_method):
+            if alternative_chatters_method:
                 chatters2 = get_chatters2(user)
                 print "getting", user + " (module returned %d)-----" %chatters2
-                if (chatters2 > 1):
+                if chatters2 > 1:
                     return chatters2
             else:
                 print "getting", user + "-----" 
@@ -99,7 +99,7 @@ def get_dota2lounge_list():
     for item in list1:
         item = item.split("\n")
         for sentence in item:
-            if (string2 in sentence):
+            if string2 in sentence:
                 list2.append(sentence)
 
     d2l_list = []
@@ -149,7 +149,7 @@ def user_ratio(user):
         return 1
     if d2l_check:
         d2l_list = get_dota2lounge_list()
-        if (user in d2l_list):
+        if user in d2l_list:
             print user, "is being embedded in dota2lounge. nogo",
             return 1
     chatters = user_chatters(user)
@@ -227,7 +227,7 @@ def game_ratio(game):
 
             ratio = -1
             ratio = user_ratio(user)
-            if (ratio == 0):
+            if ratio == 0:
                 print "ratio is 0... abort program?"
             handle_twitter.send_tweet(user, ratio, game, viewers, tweetmode, 
                                       ratio_threshold, confirmed, suspicious)
@@ -249,7 +249,7 @@ def remove_offline():
     for item in suspicious:
         name = item.user
         originame = name[10:] #remove the http://www.twitch.tv/
-        if (user_ratio(originame) > (2 * ratio_threshold) or 
+        if (user_ratio(originame) > 2*ratio_threshold or 
                 user_viewers(originame) < user_threshold/4):
             print originame + " appears to have stopped botting! removing from suspicious list"
             suspicious.remove(item)
@@ -261,7 +261,7 @@ def remove_offline():
             flag = True #flag is for styling the terminal, nothing else.
         name = item.user
         originame = name[10:] #remove the http://www.twitch.tv/
-        if (user_ratio(originame) > (2 * ratio_threshold) or user_viewers(originame) < 50):
+        if user_ratio(originame) > (2 * ratio_threshold) or user_viewers(originame) < 50:
             print originame + " appears to have stopped botting! removing from confirmed list"
             confirmed.remove(item)
         else:
@@ -270,6 +270,8 @@ def remove_offline():
         print
         print
     print "looping back around :D"
+    print
+    print
 
 #search_all_games:
 #   loops through all the games via the Twitch API, checking for their average ratios
@@ -304,13 +306,13 @@ def search_all_games():
         if len(suspicious) == 0:
             print "No one :D"
         for item in suspicious:
-            print "%0.3f:" %item.ratio, itemuser[10:], "      ", item.game
+            print "%d / %d = %0.3f:" %(item.chatters, item.viewers, item.ratio,), item.user[10:], "      ", item.game
         print
         print "We have confirmed: "
         if len(confirmed) == 0:
             print "No one :D"
         for item in confirmed:
-            print "%0.3f:" %item.ratio, item.user[10:], "      ", item.game
+            print "%d / %d = %0.3f:" %(item.chatters, item.viewers, item.ratio,), item.user[10:], "      ", item.game
         print
         print "Total of", len(suspicious)+len(confirmed), "botters"
         print
