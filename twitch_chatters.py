@@ -11,6 +11,11 @@ from botter import Botter
 from global_consts import debug, tweetmode, alternative_chatters_method, \
                           d2l_check, user_threshold, ratio_threshold, \
                           expected_ratio, num_games
+
+if len(sys.argv) > 1:
+    if sys.argv[1] == 'debug':
+        debug = True
+
 if debug:
     import webbrowser #just for debugging. like javascript alerts. don't need it otherwise.
 
@@ -306,10 +311,7 @@ def search_all_games():
                     print item.user[10:], "was found to have stopped botting", game + "!",
                     print " removing from suspicious list!"
                 else:
-                    print newconfirmed #debug
                     suspicious.remove(item)
-                    print suspicious #debug
-                    raise TypeError #debug
         print
         print "Average ratio for " + game + ": %0.3f" %ratio
         print
