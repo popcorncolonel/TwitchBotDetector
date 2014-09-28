@@ -114,11 +114,10 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
                         pass
         if not found:
             for item in confirmed:
-                if item[0] == name:
+                if item.user == name:
                     print
                     return
             new_botter = Botter(user=name, ratio=ratio, game=game, viewers=viewers, chatters=int(viewers * ratio))
-            #suspicious.append([name, ratio, game])
             suspicious.append(new_botter)
             print " <-- added to suspicious for this"
     else:

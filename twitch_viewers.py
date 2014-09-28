@@ -47,32 +47,57 @@ def user_viewers(user):
         req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
     except (KeyboardInterrupt, SystemExit):
         raise
-    except:
+    except Exception, e:
+        print e
         print "error getting the current views for", user + "; recursing."
         time.sleep(1)
         return user_viewers(user)
     i = 0
     while req.status_code != 200:
-        print (str(req.status_code) + " viewerlist unavailable")
-        try:
-            req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
+        print req.status_code, "viewerlist unavailable (due to %s)" %user
+        try: #requests is having problems. try urllib2 and then try retrying requests
+            import urllib2
+            import json
+            response = urllib2.urlopen("https://api.twitch.tv/kraken/streams/"+user)
+            try:
+                userdata = json.load(response)
+            except ValueError:
+                print "couldn't json. recursing (line 65 twitch_viewers)"
+                time.sleep(0.5)
+                return user_viewers(user) #nope start over
+            if 'stream' in userdata.keys():
+                viewers = 0
+                if userdata['stream']: # if the streamer is offline, userdata returns null
+                    viewers = userdata['stream']['viewers']
+                if viewers == 0:
+                    print user + " appears to be offline!",
+                return viewers
+            else:
+                print user
+                print str(userdata['status']) + " " + userdata['message'] + " " + userdata['error']
+                print user + " is not live right now, or the API is down."
+                return 0
         except (KeyboardInterrupt, SystemExit):
             raise
-        except:
+        except Exception, e:
+            req = requests.get("https://api.twitch.tv/kraken/streams/"+user)
+            print e
             print "error getting viewers for " + user
+            time.sleep(1)
             pass
-        if i > 15 and restart_on_failure:
-            print "RESTARTING PROGRAM!!!!!!!!!!!!!!!!!!!!! 422 ERROR"
-            restart_program()
-        elif i > 15:
-            print "quitting fn due to", user
-            return 0
+        if i > 15:
+            if restart_on_failure:
+                print "RESTARTING PROGRAM!!!!!!!!!!!!!!!!!!!!! 422 ERROR"
+                restart_program()
+            else:
+                print "quitting fn due to", user
+                return 0
         if req.status_code == 422 or req.status_code == 404:
             i += 1
     try:
         userdata = req.json()
     except ValueError:
-        print "couldn't json. recursing (line 82, twitch_viewers)"
+        print "couldn't json. recursing (line 100 twitch_viewers)"
         return user_viewers(user) #nope start over
     if 'stream' in userdata.keys():
         viewers = 0

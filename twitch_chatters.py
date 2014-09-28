@@ -6,14 +6,15 @@ import handle_twitter
 from get_exceptions import get_exceptions
 from chat_count import chat_count
 import urllib2
-import webbrowser
 from botter import Botter
 
 from global_consts import debug, tweetmode, alternative_chatters_method, \
                           d2l_check, user_threshold, ratio_threshold, \
                           expected_ratio, num_games
+if debug:
+    import webbrowser #just for debugging. like javascript alerts. don't need it otherwise.
 
-#lists of botters
+#lists of Botters passed around all over the place, represents who's currently botting.
 suspicious = []
 confirmed = []
 
@@ -156,7 +157,10 @@ def user_ratio(user):
     if debug:
         chatters2 = get_chatters2(user)
     viewers = user_viewers(user)
-    if viewers and viewers != 0:
+    if viewers == -1: #this means something went wrong with the twitch servers, or user's internet died
+        print "RECURSING BECAUSE OF 422 TWITCH ERROR"
+        return user_ratio(user)
+    if viewers and viewers != 0: #viewers == 0 => streamer offline
         maxchat = max(chatters, chatters2)
         ratio = float(maxchat) / viewers
         print user + ": " + str(maxchat) + " / " + str(viewers) + " = %0.3f" %ratio,
@@ -245,7 +249,7 @@ def game_ratio(game):
 #   removes users from the suspicious and confirmed lists if they are no longer botting
 def remove_offline():
     print "==REMOVING OFFLINE=="
-    flag = False
+    flag = False #flag is for styling the terminal, nothing else. 
     for item in suspicious:
         name = item.user
         originame = name[10:] #remove the http://www.twitch.tv/
@@ -293,12 +297,19 @@ def search_all_games():
         print "__" + game + "__", 
         print "(tweetmode off)" if not tweetmode else ""
         prev_suspicious = suspicious[:] #make a duplicate of suspicious before things are added to the new suspicious list
-        ratio = game_ratio(game)
+        ratio = game_ratio(game) #does remove elements from suspicious and puts them into confirmed
         for item in suspicious:
             if item.game == game and item in prev_suspicious:
-                suspicious.remove(item)
-                print item.user[10:], "was found to have stopped botting", game + "!",
-                print " removing from suspicious list!"
+                newconfirmed = [i for i in confirmed if i.game == game and item.user == i.user]
+                if newconfirmed != []:
+                    suspicious.remove(item)
+                    print item.user[10:], "was found to have stopped botting", game + "!",
+                    print " removing from suspicious list!"
+                else:
+                    print newconfirmed #debug
+                    suspicious.remove(item)
+                    print suspicious #debug
+                    raise TypeError #debug
         print
         print "Average ratio for " + game + ": %0.3f" %ratio
         print
@@ -306,8 +317,9 @@ def search_all_games():
         if len(suspicious) == 0:
             print "No one :D"
         for item in suspicious:
-            print "%s: %s%d / %d = %0.3f: %s" %(channel, 
-                                                " "*20-len(channel), #formatting spaces
+            channel = item.user[10:]
+            print "%s %s%d / %d = %0.3f   %s" %(channel, 
+                                                " "*(20-len(channel)), #formatting spaces
                                                 item.chatters, item.viewers, item.ratio,
                                                 item.game
                                                )
@@ -318,8 +330,8 @@ def search_all_games():
             print "No one :D"
         for item in confirmed:
             channel = item.user[10:]
-            print "%s: %s%d / %d = %0.3f: %s" %(channel, 
-                                                " "*20-len(channel), #formatting spaces
+            print "%s %s%d / %d = %0.3f   %s" %(channel, 
+                                                " "*(20-len(channel)), #formatting spaces
                                                 item.chatters, item.viewers, item.ratio,
                                                 item.game
                                                )
