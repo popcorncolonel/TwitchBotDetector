@@ -118,10 +118,10 @@ def avg_user_follows(user):
     return avg
 
 #usage example: "python chat_count.py twitchplayspokemon"
-if (len(sys.argv) == 2):
-    count = 5
-    #print avg_user_follows(sys.argv[1])
-    count = chat_count(sys.argv[1], verbose=False)
-    print count, "chatters in %s" %sys.argv[1]
-
+if __name__ == '__main__':
+    if (len(sys.argv) == 2):
+        count = 5
+        #print avg_user_follows(sys.argv[1])
+        count = chat_count(sys.argv[1], verbose=False)
+        print count, "chatters in %s" %sys.argv[1]
 
