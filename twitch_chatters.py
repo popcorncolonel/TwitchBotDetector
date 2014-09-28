@@ -7,11 +7,13 @@ from get_exceptions import get_exceptions
 from chat_count import chat_count
 import urllib2
 import webbrowser
+import botter
 
 from global_consts import debug, tweetmode, alternative_chatters_method, \
                           d2l_check, user_threshold, ratio_threshold, \
                           expected_ratio, num_games
 
+#lists of botters
 suspicious = []
 confirmed = []
 
@@ -245,7 +247,7 @@ def remove_offline():
     print "==REMOVING OFFLINE=="
     flag = False
     for item in suspicious:
-        name = item[0]
+        name = item.user
         originame = name[10:] #remove the http://www.twitch.tv/
         if (user_ratio(originame) > (2 * ratio_threshold) or 
                 user_viewers(originame) < user_threshold/4):
@@ -282,7 +284,7 @@ def search_all_games():
         print "connection error trying to get the game list. recursing :)))"
         return search_all_games
     except ValueError:
-        print "nope. recursing. ~276 twitch_chatters.py"
+        print "nope. recursing. ~287 twitch_chatters.py"
         search_all_games()
     for i in range(0,len(topdata['top'])):
         game = removeNonAscii(topdata['top'][i]['game']['name'])
@@ -291,9 +293,9 @@ def search_all_games():
         prev_suspicious = suspicious[:] #make a duplicate of suspicious before things are added to the new suspicious list
         ratio = game_ratio(game)
         for item in suspicious:
-            if item[2] == game and item in prev_suspicious:
+            if item.game == game and item in prev_suspicious:
                 suspicious.remove(item)
-                print item[0][10:], "was found to have stopped botting", game + "!",
+                print item.user[10:], "was found to have stopped botting", game + "!",
                 print " removing from suspicious list!"
         print
         print "Average ratio for " + game + ": %0.3f" %ratio
@@ -302,7 +304,7 @@ def search_all_games():
         if len(suspicious) == 0:
             print "No one :D"
         for item in suspicious:
-            print "%0.3f:" %item[1], item[0][10:], "      ", item[2]
+            print "%0.3f:" %item.ratio, itemuser[10:], "      ", item.game
         print
         print "We have confirmed: "
         if len(confirmed) == 0:
@@ -310,7 +312,7 @@ def search_all_games():
         for item in confirmed:
             print "%0.3f:" %item[1], item[0][10:], "      ", item[2]
         print
-        print "Total of " + str(len(suspicious) + len(confirmed)) + " botters"
+        print "Total of", len(suspicious)+len(confirmed), "botters"
         print
         print
 

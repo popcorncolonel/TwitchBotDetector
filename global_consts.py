@@ -1,5 +1,5 @@
 debug = False #debug mode with extraneous error messages and information
-tweetmode = False #true if you want it to tweet, false if you don't
+tweetmode = True #true if you want it to tweet, false if you don't
 d2l_check = True #check dota 2 lounge's website for embedded live matches?
 user_threshold = 200   #initial necessity for confirmation
 ratio_threshold = 0.16 #if false positives, lower this number. if false negatives, raise this number

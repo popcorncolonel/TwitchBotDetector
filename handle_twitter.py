@@ -57,19 +57,19 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
                 item[1] = ratio #update the ratio and game each time
                 item[2] = game
         for item in suspicious:
-            if item[0] == name:
-                item[1] = ratio #update the ratio and game each time
-                item[2] = game
+            if item.user == name:
+                item.ratio = ratio #update the ratio and game each time
+                item.game = game
                 found = True
         if found:
             print
-            suspicious.remove([name, ratio, game])
-            if (tweetmode):
+            suspicious = [item for item in suspicious if item.user != name]
+            if tweetmode:
                 print "Tweeting!"
             else:
                 print "(Not actually Tweeting this):"
             confirmed.append([name, ratio, game])
-            chatters = int(viewers * ratio) # TODO: something more intelligent than chatters, take into account the average game ratio and calculate the expected number of viewers
+            chatters = int(viewers * ratio) # TODO: something more intelligent than chatters, take into account the average game ratio and calculate the expected number of viewers?
             game_tweet = get_game_tweet(game)
             #TODO: change expected_ratio to be each game - is this a good idea? avg skewed by botting viewers...
             fake_viewers = int(viewers - (1 / expected_ratio) * chatters)
@@ -83,7 +83,7 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
                 tweet = tweet + " #" + user
             if not tweetmode:
                 print "Not",
-            print("Tweet text: '" + tweet + "'")
+            print "Tweet text: '" + tweet + "'"
             statuses = api.GetUserTimeline(twitter_name, count=num_recent_tweets)[:num_recent_tweets]
             found_rec_tweet = False #did we recently tweet about this person?
             for status in statuses:
@@ -109,7 +109,9 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
                 if item[0] == name:
                     print
                     return
-            suspicious.append([name, ratio, game])
+            new_botter = Botter(user=name, ratio=ratio, game=game, viewers=viewers, chatters=int(viewers * ratio))
+            #suspicious.append([name, ratio, game])
+            suspicious.append(new_botter)
             print " <-- added to suspicious for this"
     else:
         print
