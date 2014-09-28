@@ -1,5 +1,5 @@
-from twython import Twython
 from get_passwords import get_passwords, get_twitter_name
+from twython import Twython
 import twitter
 
 expected_ratio = 0.60

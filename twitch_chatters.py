@@ -1,6 +1,7 @@
 import socket
 import requests
 import sys 
+import time
 from twitch_viewers import user_viewers, removeNonAscii, user_total_views
 import handle_twitter
 from get_exceptions import get_exceptions
@@ -48,6 +49,7 @@ def user_chatters(user, depth=0):
         raise
     except:
         print "couldn't get users for " + user + "; recursing"
+        time.sleep(0.3) #don't recurse too fast
         return user_chatters(user, depth+1)
     if alternative_chatters_method:
         chatters2 = get_chatters2(user)
@@ -268,6 +270,8 @@ def remove_offline():
         print
         print
     print "looping back around :D"
+    print
+    print
 
 #search_all_games:
 #   loops through all the games via the Twitch API, checking for their average ratios
