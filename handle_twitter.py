@@ -30,6 +30,8 @@ def get_formatted_game(game):
     formatted_game = game.split(":")[0] #manually shorten the tweet, many of these by inspection
     if formatted_game[:17] == "The Elder Scrolls":
         formatted_game = "TES:" + formatted_game[17:] #TES: Online
+    if formatted_game == "Halo":
+        formatted_game = game
     if formatted_game == "League of Legends":
         formatted_game = "LoL"
     if formatted_game == "Call of Duty" and len(game.split(":")) > 1:
@@ -58,11 +60,15 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
         found = False #Whether or not the user has been found in the *suspicious* list
         for item in confirmed:
             if item.user == name:
-                item.ratio = ratio #update the ratio and game each time
+                item.ratio = ratio #update the info each time we go through it
+                item.viewers = viewers
+                item.chatters=int(viewers * ratio)
                 item.game = game
         for item in suspicious:
             if item.user == name:
-                item.ratio = ratio #update the ratio and game each time
+                item.viewers = viewers
+                item.chatters=int(viewers * ratio)
+                item.ratio = ratio #update the info
                 item.game = game
                 found = True
         if found:
