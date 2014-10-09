@@ -5,7 +5,6 @@ import time
 from twitch_viewers import user_viewers, removeNonAscii, user_total_views
 import handle_twitter
 from get_exceptions import get_exceptions
-from chat_count import chat_count
 import urllib2
 from botter import Botter
 
@@ -19,6 +18,8 @@ if len(sys.argv) > 1:
 
 if debug:
     import webbrowser #just for debugging. like javascript alerts. don't need it otherwise.
+if alternative_chatters_method:
+    from chat_count import chat_count
 
 #lists of Botters passed around all over the place, represents who's currently botting.
 suspicious = []
@@ -97,7 +98,7 @@ def get_dota2lounge_list():
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
-        print "D2L error :((("
+        print "D2L error 1 :((("
         return []
     string = "LIVE</span>"
     list1 = filter(lambda x: string in x, u) 
@@ -119,7 +120,7 @@ def get_dota2lounge_list():
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            print "D2L error :((("
+            print "D2L error 2 :((("
             return []
         list3 = filter(lambda x: "twitch.tv/widgets/live_embed_player.swf?channel=" in x, u2)
         for item in list3:
