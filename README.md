@@ -7,6 +7,8 @@ Alternative bot detection methods are listed below. Let me know if you see any o
 streams with fake chatters by [emailing me](mailto:popcorncolonel@gmail.com), or feel
 free to contact me with questions/anything at that email address.
 
+I'm not necessarily accusing the streamers of botting their own channels. I'm not affiliated with Twitch.
+
 ###Usage###
 "python bdb.py"
 
