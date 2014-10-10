@@ -4,7 +4,6 @@ import sys
 import re
 import time
 from twitch_viewers import user_viewers, removeNonAscii, user_total_views
-import handle_twitter
 from get_exceptions import get_exceptions
 import urllib2
 from botter import Botter
@@ -14,9 +13,13 @@ from global_consts import debug, tweetmode, alternative_chatters_method, \
                           expected_ratio, num_games
 
 if len(sys.argv) > 1:
-    if sys.argv[1] == 'debug':
+    args = sys.argv[1:]
+    if '-debug' in args:
         debug = True
+    if '--no-tweetmode' in args or '-q' in args:
+        tweetmode = False
 
+import handle_twitter
 if debug:
     import webbrowser #just for debugging. like javascript alerts. don't need it otherwise.
 if alternative_chatters_method:
@@ -155,14 +158,15 @@ def user_ratio(user):
     exceptions = get_exceptions()
 #users don't have to put ^ or $ at the beginning. just use .* it's more readable.
     for regex in exceptions:
-        if regex[0] != '^':
-            regex = '^' + regex
-        if regex[-1] != '$':
-            regex += '$'
-       #if the username matched the regex 
-        if re.match(regex, user, re.I|re.S) != None: 
-            print user, "is alright :)",
-            return 1
+        if regex != '':
+            if regex[0] != '^':
+                regex = '^' + regex
+            if regex[-1] != '$':
+                regex += '$'
+           #if the username matches the regex 
+            if re.match(regex, user, re.I|re.S) != None: 
+                print user, "is alright :)",
+                return 1
     if user in get_frontpage_users():
         print "nope,", user, "is on the front page of twitch.",
         return 1

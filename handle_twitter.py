@@ -1,4 +1,11 @@
 from global_consts import tweetmode
+import sys
+
+if len(sys.argv) > 1:
+    args = sys.argv[1:]
+    if '--no-tweetmode' in args or '-q' in args:
+        tweetmode = False
+
 if tweetmode:
     from twython import Twython
     from get_passwords import get_passwords, get_twitter_name
