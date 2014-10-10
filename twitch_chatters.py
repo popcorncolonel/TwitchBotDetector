@@ -258,16 +258,19 @@ def game_ratio(game):
 def remove_offline():
     print "==REMOVING OFFLINE=="
     flag = False #flag is for styling the terminal, nothing else. 
+    to_remove = []
     for item in suspicious:
         name = item.user
         originame = name[10:] #remove the http://www.twitch.tv/
         if (user_ratio(originame) > 2*ratio_threshold or 
                 user_viewers(originame) < user_threshold/4):
             print originame + " appears to have stopped botting! removing from suspicious list"
-            suspicious.remove(item)
+            to_remove.append(item)
         else:
             print
-
+    for item in to_remove:
+        suspicious.remove(item)
+    to_remove = []
     for item in confirmed:
         if confirmed != []:
             flag = True #flag is for styling the terminal, nothing else.
@@ -275,9 +278,11 @@ def remove_offline():
         originame = name[10:] #remove the http://www.twitch.tv/
         if user_ratio(originame) > (2 * ratio_threshold) or user_viewers(originame) < 50:
             print originame + " appears to have stopped botting! removing from confirmed list"
-            confirmed.remove(item)
+            to_remove.append(item)
         else:
             print
+    for item in to_remove:
+        confirmed.remove(item)
     if flag:
         print
         print
