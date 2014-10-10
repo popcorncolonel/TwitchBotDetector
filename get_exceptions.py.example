@@ -1,2 +1,4 @@
+#returns regular expressions
+#you don't have to put ^ or $ at the beginning/end. just use .* -- it's more readable.
 def get_exceptions():
-    return ['twitch'] #add more names here
+    return [r'twitch', r'esltv_.*'] #add more names here

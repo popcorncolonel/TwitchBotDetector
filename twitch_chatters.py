@@ -1,6 +1,7 @@
 import socket
 import requests
 import sys 
+import re
 import time
 from twitch_viewers import user_viewers, removeNonAscii, user_total_views
 import handle_twitter
@@ -26,9 +27,11 @@ suspicious = []
 confirmed = []
 
 # these users are known to have small chat to viewer ratios for valid reasons
+# NOTE: Regexes, not only strings (though strings will work too)
+#       You don't have to put ^ or $ at the beginning/end. just use .* -- it's more readable.
 # example: chat disabled, or chat hosted not on the twitch site, or mainly viewed on 
 #          front page of twitch
-# type: list of strings: example: ["destiny", "scg_live"]
+# type: list of REGEXes: example: ["destiny", "scg_live.*", ".*twitch.*"]
 exceptions = get_exceptions()
 
 #get_chatters2:
@@ -150,11 +153,18 @@ def get_frontpage_users():
 def user_ratio(user):
     chatters2 = 0
     exceptions = get_exceptions()
+#users don't have to put ^ or $ at the beginning. just use .* it's more readable.
+    for regex in exceptions:
+        if regex[0] != '^':
+            regex = '^' + regex
+        if regex[-1] != '$':
+            regex += '$'
+       #if the username matched the regex 
+        if re.match(regex, user, re.I|re.S) != None: 
+            print user, "is alright :)",
+            return 1
     if user in get_frontpage_users():
         print "nope,", user, "is on the front page of twitch.",
-        return 1
-    if user in exceptions:
-        print user, "is alright :)",
         return 1
     if d2l_check:
         d2l_list = get_dota2lounge_list()
