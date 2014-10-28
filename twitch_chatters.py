@@ -22,7 +22,7 @@ if len(sys.argv) > 1:
 import handle_twitter
 if debug:
     import webbrowser #just for debugging. like javascript alerts. don't need it otherwise.
-if alternative_chatters_method:
+if alternative_chatters_method: #From what I can tell, this no longer works. I believe it has something to do with the backend of how their IRC is implemented.
     from chat_count import chat_count
 
 #lists of Botters passed around all over the place, represents who's currently botting.
@@ -71,7 +71,7 @@ def user_chatters(user, depth=0):
         if chatters2 > 1:
             return chatters2
     try:
-        while (req.status_code != 200):
+        while req.status_code != 200:
             print "----TMI error", req.status_code, 
             if alternative_chatters_method:
                 chatters2 = get_chatters2(user)
@@ -234,9 +234,10 @@ def game_ratio(game):
     avg = 0
     while 'streams' not in gamedata.keys():
         r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
-        while (r.status_code != 200):
+        while r.status_code != 200:
             print r.status_code, ", service unavailable"
             r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
+            time.sleep(1)
         try:
             gamedata = r.json()
         except ValueError:

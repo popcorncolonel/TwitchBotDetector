@@ -1,4 +1,4 @@
-class Botter:
+class Botter(object):
     def __init__(self, user, game, ratio, chatters, viewers):
         self.user = user #str
         self.game = game #str

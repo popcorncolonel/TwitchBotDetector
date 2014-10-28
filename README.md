@@ -2,6 +2,14 @@
 Essentially this is a bot that tries to detect streams with fake viewers via
 the Twitch API and the power of statistics.
 
+File layout (primarily): 
+
+    bdb.py -> twitch_chatters.py -> handle_twitter.py
+                    |
+                    v
+              twitch_viewers.py
+    
+
 Primarily, it looks at certain metrics such as the ratio between chatters to reported viewers.
 Alternative bot detection methods are listed below. Let me know if you see any other patterns in 
 streams with fake chatters by [emailing me](mailto:popcorncolonel@gmail.com), or feel

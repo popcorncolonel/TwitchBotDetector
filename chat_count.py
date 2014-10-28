@@ -8,9 +8,9 @@ from twitch_viewers import removeNonAscii
 names_num = "353"
 end_names_num = "366"
 
-port1 = 6667
-port2 = 80
-port3 = 443
+port1 = 6667 #irc
+port2 = 80 #http
+port3 = 443 #https
 default_port = port3
 
 i = 0#
@@ -26,15 +26,15 @@ def count_users(full_msg):
                 return 0         #it is still printing this for debugging purposes.
             return count - 1
         namegroup = namegroup.split(" ")
-        if (names_num in namegroup):
+        if names_num in namegroup:
             names = namegroup[5:]
             count += len(names)
-    if (count == 2):
+    if count == 2:
         print full_msg
-    if (count == 65959):
+    if count == 65959: #this was happening a lot, unexplicably. 
         print "wath"
         return 0
-    if (count == 0):
+    if count == 0:
         return count
     print "here"
     return count - 1 #don't count myself - i'm not actually in chat
@@ -58,8 +58,11 @@ def chat_count(chatroom, verbose=False):
        if data[0:4] == "PING":
           sock.send(data.replace("PING", "PONG"))
           continue
-       full_msg += data
-       if ":End of /NAMES list" in data:
+       full_msg += data #if you keep requesting to JOIN the channel, it will continue returning 
+                        #more and more names until "End of /NAMES list"
+       if verbose:
+           print data
+       if ":End of /NAMES list" in data: #do we end the search?
            if verbose:
                print "returning (\"End of /NAMES list\") due to:"
                print data
@@ -69,7 +72,7 @@ def chat_count(chatroom, verbose=False):
                print "returning (FOUND MODE) due to:"
                print data
            return count_users(full_msg)
-       if "366 " + nick in data: 
+       if "366 " + nick in data: #status code for ending the stream of names
            if verbose:
                print "returning (366) due to:"
                print data
@@ -94,7 +97,7 @@ def get_users(full_msg):
                 name = name.strip(":")
                 if name != get_username():
                     l.append(name)
-    print "here - i dont think this should occur."
+    print "here - i don't think this should occur."
     return l
 
 def user_follows(user):
@@ -119,9 +122,12 @@ def avg_user_follows(user):
 
 #usage example: "python chat_count.py twitchplayspokemon"
 if __name__ == '__main__':
-    if (len(sys.argv) == 2):
+    if len(sys.argv) >= 2:
+        args = sys.argv[1:]
+        verbose = '-v' in args or '--verbose' in args
+        print verbose
         count = 5
         #print avg_user_follows(sys.argv[1])
-        count = chat_count(sys.argv[1], verbose=False)
+        count = chat_count(sys.argv[1], verbose=verbose)
         print count, "chatters in %s" %sys.argv[1]
 
