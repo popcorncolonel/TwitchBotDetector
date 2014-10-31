@@ -106,7 +106,10 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
                 print "Not",
             print "Tweet text: '" + tweet + "'"
             if tweetmode:
-                statuses = api.GetUserTimeline(twitter_name, count=num_recent_tweets)[:num_recent_tweets]
+                try:
+                    statuses = api.GetUserTimeline(twitter_name, count=num_recent_tweets)[:num_recent_tweets]
+                except twitter.TwitterError:
+                    found_rec_tweet = True
                 found_rec_tweet = False #did we recently tweet about this person?
                 for status in statuses:
                     names = status.text.split("#")
