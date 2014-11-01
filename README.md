@@ -33,7 +33,7 @@ Modules needed:
 * [Python-Twitter](http://code.google.com/p/python-twitter/)
 
 ###Notes###
-* Some sophisticated detection methods:
+* Some other detection methods:
     * Take into account the average chat viewer ratio **for each game** vs per 
       user: maybe a bad idea - skewed by bots if a low number of streamers for
       a certain game  
