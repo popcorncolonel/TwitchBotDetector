@@ -25,6 +25,9 @@ if debug:
 if alternative_chatters_method: #From what I can tell, this no longer works. I believe it has something to do with the backend of how their IRC is implemented.
     from chat_count import chat_count
 
+global_sum = 0
+global_cnt = 0
+
 #lists of Botters passed around all over the place, represents who's currently botting.
 suspicious = []
 confirmed = []
@@ -260,9 +263,14 @@ def game_ratio(game):
                                       ratio_threshold, confirmed, suspicious)
             avg += ratio
             count += 1
+            time.sleep(1) #don't spam servers
     else:
         print "couldn't find " + game + " :("
         return 0
+    global global_sum
+    global global_cnt
+    global_sum += avg
+    global_cnt += count
     if count != 0:
         avg /= count
     # for the game specified, go through all users more than <user_threshold> viewers, find ratio, average them
@@ -308,6 +316,7 @@ def remove_offline():
 #search_all_games:
 #   loops through all the games via the Twitch API, checking for their average ratios
 def search_all_games():
+    global global_sum
     try:
         topreq = requests.get("https://api.twitch.tv/kraken/games/top?limit=" + str(num_games))
         while topreq.status_code != 200:
@@ -337,6 +346,8 @@ def search_all_games():
                     suspicious.remove(item)
         print
         print "Average ratio for " + game + ": %0.3f" %ratio
+        print
+        print "Total global ratio: %0.3f" %(global_sum / float(global_cnt))
         print
         print "We are suspicious of: "
         if len(suspicious) == 0:

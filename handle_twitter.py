@@ -1,4 +1,4 @@
-from global_consts import tweetmode
+from global_consts import tweetmode, expected_ratio
 import sys
 
 if len(sys.argv) > 1:
@@ -11,8 +11,6 @@ if tweetmode:
     from get_passwords import get_passwords, get_twitter_name
     import twitter
 from botter import Botter
-
-expected_ratio = 0.60
 
 if tweetmode:
     passes = get_passwords()
@@ -90,15 +88,15 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
             #usernames in these lists are unique (you can only stream once at a time...)
             suspicious = [item for item in suspicious if item.user != name] 
 
-            chatters = int(viewers * ratio) # TODO: something more intelligent than chatters, take into account the average game ratio and calculate the expected number of viewers?
+            chatters = int(viewers * ratio) 
             formatted_game = get_formatted_game(game)
-            #TODO: change expected_ratio to be each game - is this a good idea? avg skewed by botting viewers...
+            #TODO: change expected_ratio to be each game - is this a good idea? avg skewed by botting viewers, and low sample size...
             fake_viewers = int(viewers - (1 / expected_ratio) * chatters)
             estimate = "(~" + str(fake_viewers) + " extra viewers of "+ str(viewers) + " total)"
             tweet = name + " (" + formatted_game + ") might have a false-viewer bot " + estimate
-            if ratio < 0.13:
+            if ratio < 0.07:
                 tweet = name + " (" + formatted_game + ") appears to have a false-viewer bot " + estimate
-            if ratio < 0.09:
+            if ratio < 0.05:
                 tweet = name + " (" + formatted_game + ") almost definitely has a false-viewer bot " + estimate
             if len(tweet) + 2 + len(user) <= 140: #max characters in a tweet
                 tweet = tweet + " #" + user
@@ -106,10 +104,13 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
                 print "Not",
             print "Tweet text: '" + tweet + "'"
             if tweetmode:
-                try:
-                    statuses = api.GetUserTimeline(twitter_name, count=num_recent_tweets)[:num_recent_tweets]
-                except twitter.TwitterError:
-                    found_rec_tweet = True
+                while True:
+                    try:
+                        statuses = api.GetUserTimeline(twitter_name, count=num_recent_tweets)[:num_recent_tweets]
+                        break
+                    except twitter.TwitterError:
+                        print "error getting statuses for BDB - retrying"
+                        pass
                 found_rec_tweet = False #did we recently tweet about this person?
                 for status in statuses:
                     names = status.text.split("#")
