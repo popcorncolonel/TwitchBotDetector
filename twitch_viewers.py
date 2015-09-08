@@ -80,7 +80,6 @@ def user_viewers(user):
         except (KeyboardInterrupt, SystemExit):
             raise
         except Exception, e:
-            req = requests.get("https://api.twitch.tv/kraken/streams/"+user)
             print e
             print "error getting viewers for " + user
             time.sleep(1)

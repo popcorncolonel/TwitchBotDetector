@@ -221,8 +221,10 @@ def game_ratio(game):
         raise
     except:
         print "uh oh caught exception when connecting. try again. see game_ratio(game)."
+        time.sleep(5)
         return game_ratio(game)
     if not r:
+        time.sleep(5)
         return game_ratio(game)
     while r.status_code != 200:
         print r.status_code, ", service unavailable"
@@ -231,6 +233,7 @@ def game_ratio(game):
         gamedata = r.json()
     except ValueError:
         print "could not decode json. recursing"
+        time.sleep(5)
         return game_ratio(game)
 #TODO make a dictionary with keys as the game titles and values as the average and count
     count = 0 # number of games checked
