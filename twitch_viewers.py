@@ -4,6 +4,8 @@ import sys # for printing to stderr and restarting program
 import os
 import time
 
+from get_passwords import CLIENT_ID
+
 restart_on_failure = False 
 
 def removeNonAscii(s): return "".join([x if ord(x) < 128 else '?' for x in s])
@@ -18,7 +20,8 @@ def restart_program():
 #user is a string representing http://www.twitch.tv/<user>
 def user_total_views(user):
     try:
-        r = requests.get("https://api.twitch.tv/kraken/search/channels?q=" + user)
+        r = requests.get("https://api.twitch.tv/kraken/search/channels?q=" + user,
+                         headers={"Client-ID": CLIENT_ID})
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
@@ -26,7 +29,8 @@ def user_total_views(user):
         return user_total_views(user)
     while r.status_code != 200:
         try:
-            r = requests.get("https://api.twitch.tv/kraken/search/channels?q=" + user)
+            r = requests.get("https://api.twitch.tv/kraken/search/channels?q=" + user,
+                             headers={"Client-ID": CLIENT_ID})
             break
         except (KeyboardInterrupt, SystemExit):
             raise
@@ -44,7 +48,8 @@ def user_viewers(user):
     global restart_on_failure
     req = 0
     try:
-        req = requests.get("https://api.twitch.tv/kraken/streams/" + user)
+        req = requests.get("https://api.twitch.tv/kraken/streams/" + user,
+                           headers={"Client-ID": CLIENT_ID})
     except (KeyboardInterrupt, SystemExit):
         raise
     except Exception, e:
@@ -58,7 +63,9 @@ def user_viewers(user):
         try: #requests is having problems. try urllib2 and then try retrying requests
             import urllib2
             import json
-            response = urllib2.urlopen("https://api.twitch.tv/kraken/streams/"+user)
+            req2 = urllib2.Request("https://api.twitch.tv/kraken/streams/"+user)
+            req2.add_header('Client-ID', CLIENT_ID)
+            response = urllib2.urlopen(req2)
             try:
                 userdata = json.load(response)
             except ValueError:

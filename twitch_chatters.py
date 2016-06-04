@@ -12,6 +12,8 @@ from global_consts import debug, tweetmode, alternative_chatters_method, \
                           d2l_check, user_threshold, ratio_threshold, \
                           expected_ratio, num_games
 
+from get_passwords import CLIENT_ID
+
 if len(sys.argv) > 1:
     args = sys.argv[1:]
     if '-debug' in args:
@@ -62,7 +64,7 @@ def user_chatters(user, depth=0):
     chatters = 0
     chatters2 = 0
     try:
-        req = requests.get("http://tmi.twitch.tv/group/user/" + user)
+        req = requests.get("http://tmi.twitch.tv/group/user/" + user, headers={"Client-ID": CLIENT_ID})
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
@@ -103,7 +105,9 @@ def user_chatters(user, depth=0):
 #   of users watching a Twitch stream through d2l, and I don't want to false positive these streams.
 def get_dota2lounge_list():
     try:
-        u = urllib2.urlopen('http://dota2lounge.com/index.php').read().split("matchmain")
+        req = urllib2.Request('http://dota2lounge.com/index.php')
+        req.add_header('Client-ID', CLIENT_ID)
+        u = urllib2.urlopen(req).read().split("matchmain")
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
@@ -125,7 +129,9 @@ def get_dota2lounge_list():
     for item in list2:
         url = "http://dota2lounge.com/" + item.split("\"")[1]
         try:
-            u2 = urllib2.urlopen(url).read().split("\n")
+            req = urllib2.Request(url)
+            req.add_header('Client-ID', CLIENT_ID)
+            u2 = urllib2.urlopen(req).read().split("\n")
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
@@ -140,7 +146,9 @@ def get_dota2lounge_list():
 # very ugly web scraping :)))
 def get_frontpage_users():
     try:
-        u = urllib2.urlopen('http://www.twitch.tv',timeout=5).read().split('data-channel=')
+        req = urllib2.Request('http://www.twitch.tv')
+        req.add_header('Client-ID', CLIENT_ID)
+        u = urllib2.urlopen(req, timeout=5).read().split('data-channel=')
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
@@ -216,7 +224,7 @@ def user_ratio(user):
 def game_ratio(game):
     global tweetmode
     try:
-        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
+        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game, headers={"Client-ID": CLIENT_ID})
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
@@ -228,7 +236,7 @@ def game_ratio(game):
         return game_ratio(game)
     while r.status_code != 200:
         print r.status_code, ", service unavailable"
-        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
+        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game, headers={"Client-ID": CLIENT_ID})
     try:
         gamedata = r.json()
     except ValueError:
@@ -239,10 +247,10 @@ def game_ratio(game):
     count = 0 # number of games checked
     avg = 0
     while 'streams' not in gamedata.keys():
-        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
+        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game, headers={"Client-ID": CLIENT_ID})
         while r.status_code != 200:
             print r.status_code, ", service unavailable"
-            r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
+            r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game, headers={"Client-ID": CLIENT_ID})
             time.sleep(1)
         try:
             gamedata = r.json()
@@ -321,10 +329,10 @@ def remove_offline():
 def search_all_games():
     global global_sum
     try:
-        topreq = requests.get("https://api.twitch.tv/kraken/games/top?limit=" + str(num_games))
+        topreq = requests.get("https://api.twitch.tv/kraken/games/top?limit=" + str(num_games), headers={"Client-ID": CLIENT_ID})
         while topreq.status_code != 200:
             print "trying to get top games..."
-            topreq = requests.get("https://api.twitch.tv/kraken/games/top?limit=" + str(num_games))
+            topreq = requests.get("https://api.twitch.tv/kraken/games/top?limit=" + str(num_games), headers={"Client-ID": CLIENT_ID})
         topdata = topreq.json()
     except requests.exceptions.ConnectionError:
         print "connection error trying to get the game list. recursing :)))"
