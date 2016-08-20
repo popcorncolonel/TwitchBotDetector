@@ -143,31 +143,28 @@ def get_dota2lounge_list():
             d2l_list.append(item)
     return d2l_list
 
-# very ugly web scraping :)))
+
 def get_frontpage_users():
+    """
+    Returns a list of featured streamers.
+    """
     try:
-        req = urllib2.Request('http://www.twitch.tv')
-        req.add_header('Client-ID', CLIENT_ID)
-        u = urllib2.urlopen(req, timeout=5).read().split('data-channel=')
+        url = "https://api.twitch.tv/kraken/streams/featured?limit=100"
+        req = requests.get(url, headers={"Client-ID": CLIENT_ID})
+        data = req.json()
     except (KeyboardInterrupt, SystemExit):
         raise
-    except:
-        print "Twitch frontpage error :((("
+    except Exception as e:
+        print("Error getting featured streams: ", e)
         return []
-    users = []
-    for channel in u:
-        name = channel.split("'")[1]
-        if name not in users:
-            users.append(name)
-    return users
+    return [obj['stream']['channel']['name'] for obj in data['featured']]
 
-#user_ratio:
 #   returns the ratio of chatters to viewers in <user>'s channel
 #user is a string representing http://www.twitch.tv/<user>
 def user_ratio(user):
     chatters2 = 0
     exceptions = get_exceptions()
-#users don't have to put ^ or $ at the beginning. just use .* it's more readable.
+    #users don't have to put ^ or $ at the beginning. just use .* it's more readable.
     for regex in exceptions:
         if regex != '':
             if regex[0] != '^':
@@ -179,7 +176,7 @@ def user_ratio(user):
                 print user, "is alright :)",
                 return 1
     if user in get_frontpage_users():
-        print "nope,", user, "is on the front page of twitch.",
+        print "nope,", user, "is a featured stream (being shown on the frontpage).",
         return 1
     if d2l_check:
         d2l_list = get_dota2lounge_list()
