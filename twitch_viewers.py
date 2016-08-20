@@ -1,24 +1,27 @@
 import requests
-import json
-import sys # for printing to stderr and restarting program
+import sys  # for printing to stderr and restarting program
 import os
 import time
 
 from get_passwords import CLIENT_ID
 
-restart_on_failure = False 
+restart_on_failure = False
 
-def removeNonAscii(s): return "".join([x if ord(x) < 128 else '?' for x in s])
 
-#thank you, stack overflow
+def remove_non_ascii(s): return "".join([x if ord(x) < 128 else '?' for x in s])
+
+
+# thank you, stack overflow
 def restart_program():
     python = sys.executable
-    os.execl(python, python, * sys.argv)
+    os.execl(python, python, *sys.argv)
 
-#user_total_views: 
-#   returns the number of total views twitch.tv/user has had.
-#user is a string representing http://www.twitch.tv/<user>
+
 def user_total_views(user):
+    """
+    Returns the number of total views twitch.tv/user has had.
+    :param user: string representing http://www.twitch.tv/<user>
+    """
     try:
         r = requests.get("https://api.twitch.tv/kraken/search/channels?q=" + user,
                          headers={"Client-ID": CLIENT_ID})
@@ -26,6 +29,7 @@ def user_total_views(user):
         raise
     except:
         print "error getting the total views for", user + "; recursing."
+        time.sleep(1)
         return user_total_views(user)
     while r.status_code != 200:
         try:
@@ -36,15 +40,19 @@ def user_total_views(user):
             raise
         except:
             print "error getting the total views for", user + "; recursing."
+            time.sleep(1)
             return user_total_views(user)
     chan = r.json()
     if chan['channels'][0]['name'] == user:
         return chan['channels'][0]['views']
 
-#user_viewers: 
-#   returns the number of viewers twitch.tv/user currently has. returns 0 if offline.
-#user is a string representing http://www.twitch.tv/<user>
+
 def user_viewers(user):
+    """
+    returns the number of viewers twitch.tv/user currently has. returns 0 if offline.
+
+    :param user: string representing http://www.twitch.tv/<user>
+    """
     global restart_on_failure
     req = 0
     try:
@@ -59,11 +67,11 @@ def user_viewers(user):
         return user_viewers(user)
     i = 0
     while req.status_code != 200:
-        print req.status_code, "viewerlist unavailable (due to %s)" %user
-        try: #requests is having problems. try urllib2 and then try retrying requests
+        print req.status_code, "viewerlist unavailable (due to %s)" % user
+        try:
             import urllib2
             import json
-            req2 = urllib2.Request("https://api.twitch.tv/kraken/streams/"+user)
+            req2 = urllib2.Request("https://api.twitch.tv/kraken/streams/" + user)
             req2.add_header('Client-ID', CLIENT_ID)
             response = urllib2.urlopen(req2)
             try:
@@ -71,10 +79,10 @@ def user_viewers(user):
             except ValueError:
                 print "couldn't json. recursing (line 65 twitch_viewers)"
                 time.sleep(0.5)
-                return user_viewers(user) #nope start over
+                return user_viewers(user)  # nope start over
             if 'stream' in userdata.keys():
                 viewers = 0
-                if userdata['stream']: # if the streamer is offline, userdata returns null
+                if userdata['stream']:  # if the streamer is offline, userdata returns null
                     viewers = userdata['stream']['viewers']
                 if viewers == 0:
                     print user + " appears to be offline!",
@@ -103,11 +111,12 @@ def user_viewers(user):
     try:
         userdata = req.json()
     except ValueError:
-        print "couldn't json. recursing (line 100 twitch_viewers)"
-        return user_viewers(user) #nope start over
+        print "couldn't json. recursing (line 113 twitch_viewers)"
+        time.sleep(1)
+        return user_viewers(user)  # Nope start over
     if 'stream' in userdata.keys():
         viewers = 0
-        if userdata['stream']: # if the streamer is offline, userdata returns null
+        if userdata['stream']:  # If the streamer is offline, userdata returns null
             viewers = userdata['stream']['viewers']
         if viewers == 0:
             print user + " appears to be offline!",
@@ -117,4 +126,3 @@ def user_viewers(user):
         print str(userdata['status']) + " " + userdata['message'] + " " + userdata['error']
         print user + " is not live right now, or the API is down."
         return 0
-
