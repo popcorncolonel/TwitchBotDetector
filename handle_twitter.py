@@ -60,7 +60,7 @@ def get_formatted_game(game):
 #game is the game they're playing (Unabbreviated: ex. Starcraft II: Heart of the Swarm)
 #viewers is how many viewers the person has - can be used to get number of chatters, with ratio
 def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed, suspicious):
-    name = "twitch.tv/" + user
+    name = "twitch.tv/" + user + "?live"
     if ratio < ratio_threshold:
         found = False #Whether or not the user has been found in the *suspicious* list
         for item in confirmed:

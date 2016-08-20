@@ -12,6 +12,8 @@ from global_consts import debug, tweetmode, alternative_chatters_method, \
                           d2l_check, user_threshold, ratio_threshold, \
                           expected_ratio, num_games
 
+from get_passwords import CLIENT_ID
+
 if len(sys.argv) > 1:
     args = sys.argv[1:]
     if '-debug' in args:
@@ -62,7 +64,7 @@ def user_chatters(user, depth=0):
     chatters = 0
     chatters2 = 0
     try:
-        req = requests.get("http://tmi.twitch.tv/group/user/" + user)
+        req = requests.get("http://tmi.twitch.tv/group/user/" + user, headers={"Client-ID": CLIENT_ID})
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
@@ -103,7 +105,9 @@ def user_chatters(user, depth=0):
 #   of users watching a Twitch stream through d2l, and I don't want to false positive these streams.
 def get_dota2lounge_list():
     try:
-        u = urllib2.urlopen('http://dota2lounge.com/index.php').read().split("matchmain")
+        req = urllib2.Request('http://dota2lounge.com/index.php')
+        req.add_header('Client-ID', CLIENT_ID)
+        u = urllib2.urlopen(req).read().split("matchmain")
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
@@ -125,7 +129,9 @@ def get_dota2lounge_list():
     for item in list2:
         url = "http://dota2lounge.com/" + item.split("\"")[1]
         try:
-            u2 = urllib2.urlopen(url).read().split("\n")
+            req = urllib2.Request(url)
+            req.add_header('Client-ID', CLIENT_ID)
+            u2 = urllib2.urlopen(req).read().split("\n")
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
@@ -137,29 +143,28 @@ def get_dota2lounge_list():
             d2l_list.append(item)
     return d2l_list
 
-# very ugly web scraping :)))
+
 def get_frontpage_users():
+    """
+    Returns a list of featured streamers.
+    """
     try:
-        u = urllib2.urlopen('http://www.twitch.tv',timeout=5).read().split('data-channel=')
+        url = "https://api.twitch.tv/kraken/streams/featured?limit=100"
+        req = requests.get(url, headers={"Client-ID": CLIENT_ID})
+        data = req.json()
     except (KeyboardInterrupt, SystemExit):
         raise
-    except:
-        print "Twitch frontpage error :((("
+    except Exception as e:
+        print("Error getting featured streams: ", e)
         return []
-    users = []
-    for channel in u:
-        name = channel.split("'")[1]
-        if name not in users:
-            users.append(name)
-    return users
+    return [obj['stream']['channel']['name'] for obj in data['featured']]
 
-#user_ratio:
 #   returns the ratio of chatters to viewers in <user>'s channel
 #user is a string representing http://www.twitch.tv/<user>
 def user_ratio(user):
     chatters2 = 0
     exceptions = get_exceptions()
-#users don't have to put ^ or $ at the beginning. just use .* it's more readable.
+    #users don't have to put ^ or $ at the beginning. just use .* it's more readable.
     for regex in exceptions:
         if regex != '':
             if regex[0] != '^':
@@ -171,7 +176,7 @@ def user_ratio(user):
                 print user, "is alright :)",
                 return 1
     if user in get_frontpage_users():
-        print "nope,", user, "is on the front page of twitch.",
+        print "nope,", user, "is a featured stream (being shown on the frontpage).",
         return 1
     if d2l_check:
         d2l_list = get_dota2lounge_list()
@@ -216,7 +221,7 @@ def user_ratio(user):
 def game_ratio(game):
     global tweetmode
     try:
-        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
+        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game, headers={"Client-ID": CLIENT_ID})
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
@@ -228,7 +233,7 @@ def game_ratio(game):
         return game_ratio(game)
     while r.status_code != 200:
         print r.status_code, ", service unavailable"
-        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
+        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game, headers={"Client-ID": CLIENT_ID})
     try:
         gamedata = r.json()
     except ValueError:
@@ -239,10 +244,10 @@ def game_ratio(game):
     count = 0 # number of games checked
     avg = 0
     while 'streams' not in gamedata.keys():
-        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
+        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game, headers={"Client-ID": CLIENT_ID})
         while r.status_code != 200:
             print r.status_code, ", service unavailable"
-            r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game)
+            r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game, headers={"Client-ID": CLIENT_ID})
             time.sleep(1)
         try:
             gamedata = r.json()
@@ -321,10 +326,10 @@ def remove_offline():
 def search_all_games():
     global global_sum
     try:
-        topreq = requests.get("https://api.twitch.tv/kraken/games/top?limit=" + str(num_games))
+        topreq = requests.get("https://api.twitch.tv/kraken/games/top?limit=" + str(num_games), headers={"Client-ID": CLIENT_ID})
         while topreq.status_code != 200:
             print "trying to get top games..."
-            topreq = requests.get("https://api.twitch.tv/kraken/games/top?limit=" + str(num_games))
+            topreq = requests.get("https://api.twitch.tv/kraken/games/top?limit=" + str(num_games), headers={"Client-ID": CLIENT_ID})
         topdata = topreq.json()
     except requests.exceptions.ConnectionError:
         print "connection error trying to get the game list. recursing :)))"
