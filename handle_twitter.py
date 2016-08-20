@@ -60,7 +60,7 @@ def get_formatted_game(game):
 #game is the game they're playing (Unabbreviated: ex. Starcraft II: Heart of the Swarm)
 #viewers is how many viewers the person has - can be used to get number of chatters, with ratio
 def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed, suspicious):
-    name = "twitch.tv/" + user + "?live"
+    name = "twitch.tv/" + user
     if ratio < ratio_threshold:
         found = False #Whether or not the user has been found in the *suspicious* list
         for item in confirmed:
@@ -92,6 +92,7 @@ def send_tweet(user, ratio, game, viewers, tweetmode, ratio_threshold, confirmed
             formatted_game = get_formatted_game(game)
             #TODO: change expected_ratio to be each game - is this a good idea? avg skewed by botting viewers, and low sample size...
             fake_viewers = int(viewers - (1 / expected_ratio) * chatters)
+            name += "?live"
             estimate = "(~" + str(fake_viewers) + " extra viewers of "+ str(viewers) + " total)"
             tweet = name + " (" + formatted_game + ") might have a false-viewer bot " + estimate
             if ratio < 0.07:
