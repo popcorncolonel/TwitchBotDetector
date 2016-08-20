@@ -12,7 +12,7 @@ from get_passwords import CLIENT_ID
 from global_consts import debug, tweetmode, alternative_chatters_method, \
     d2l_check, user_threshold, ratio_threshold, \
     num_games
-from twitch_viewers import user_viewers, removeNonAscii
+from twitch_viewers import user_viewers, remove_non_ascii
 
 if len(sys.argv) > 1:
     args = sys.argv[1:]
@@ -353,7 +353,7 @@ def search_all_games():
         print "nope. recursing. ~287 twitch_chatters.py"
         search_all_games()
     for i in range(0, len(topdata['top'])):
-        game = removeNonAscii(topdata['top'][i]['game']['name'])
+        game = remove_non_ascii(topdata['top'][i]['game']['name'])
         print "__" + game + "__",
         print "(tweetmode off)" if not tweetmode else ""
         prev_suspicious = suspicious[:]  # Make a duplicate of suspicious before things are added to the new suspicious list
