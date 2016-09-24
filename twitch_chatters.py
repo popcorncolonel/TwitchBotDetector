@@ -13,6 +13,7 @@ from global_consts import debug, tweetmode, alternative_chatters_method, \
     d2l_check, user_threshold, ratio_threshold, \
     num_games
 from twitch_viewers import user_viewers, remove_non_ascii
+from utils import get_json_response
 
 if len(sys.argv) > 1:
     args = sys.argv[1:]
@@ -166,6 +167,13 @@ def get_frontpage_users():
     return [obj['stream']['channel']['name'] for obj in data['featured']]
 
 
+def is_being_hosted(user):
+    user_dict = get_json_response('https://api.twitch.tv/kraken/channels/{}'.format(user))
+    user_id = user_dict['_id']
+    hosts = get_json_response('https://tmi.twitch.tv/hosts?include_logins=1&target={}'.format(user_id))
+    return hosts['hosts'] != []
+
+
 def user_ratio(user):
     """
     :param user: string representing http://www.twitch.tv/<user>
@@ -185,6 +193,9 @@ def user_ratio(user):
                 return 1
     if user in get_frontpage_users():
         print "nope,", user, "is a featured stream (being shown on the frontpage).",
+        return 1
+    if is_being_hosted(user):
+        print "nope,", user, "is being hosted by someone",
         return 1
     if d2l_check:
         d2l_list = get_dota2lounge_list()
