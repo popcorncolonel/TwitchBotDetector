@@ -169,8 +169,12 @@ def get_frontpage_users():
 
 def is_being_hosted(user):
     user_dict = get_json_response('https://api.twitch.tv/kraken/channels/{}'.format(user))
+    if '_id' not in user_dict:
+        return False
     user_id = user_dict['_id']
     hosts = get_json_response('https://tmi.twitch.tv/hosts?include_logins=1&target={}'.format(user_id))
+    if 'hosts' not in hosts:
+        return False
     return hosts['hosts'] != []
 
 
