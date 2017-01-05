@@ -68,7 +68,7 @@ def user_chatters(user, depth=0):
     chatters = 0
     chatters2 = 0
     try:
-        req = requests.get("http://tmi.twitch.tv/group/user/" + user, headers={"Client-ID": CLIENT_ID})
+        req = requests.get("http://tmi.twitch.tv/group/user/" + user, headers={"Client-ID": CLIENT_ID, "Accept": "application/vnd.twitchtv.v5+json"})
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
@@ -114,6 +114,7 @@ def get_dota2lounge_list():
     try:
         req = urllib2.Request('http://dota2lounge.com/index.php')
         req.add_header('Client-ID', CLIENT_ID)
+        req.add_header('Accept', 'application/vnd.twitchtv.v5+json')
         u = urllib2.urlopen(req).read().split("matchmain")
     except (KeyboardInterrupt, SystemExit):
         raise
@@ -138,6 +139,7 @@ def get_dota2lounge_list():
         try:
             req = urllib2.Request(url)
             req.add_header('Client-ID', CLIENT_ID)
+            req.add_header('Accept', 'application/vnd.twitchtv.v5+json')
             u2 = urllib2.urlopen(req).read().split("\n")
         except (KeyboardInterrupt, SystemExit):
             raise
@@ -157,7 +159,7 @@ def get_frontpage_users():
     """
     try:
         url = "https://api.twitch.tv/kraken/streams/featured?limit=100"
-        req = requests.get(url, headers={"Client-ID": CLIENT_ID})
+        req = requests.get(url, headers={"Client-ID": CLIENT_ID, "Accept": "application/vnd.twitchtv.v5+json"})
         data = req.json()
     except (KeyboardInterrupt, SystemExit):
         raise
@@ -247,7 +249,7 @@ def game_ratio(game):
     """
     global tweetmode
     try:
-        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game, headers={"Client-ID": CLIENT_ID})
+        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game, headers={"Client-ID": CLIENT_ID, "Accept": "application/vnd.twitchtv.v5+json"})
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
@@ -259,7 +261,7 @@ def game_ratio(game):
         return game_ratio(game)
     while r.status_code != 200:
         print r.status_code, ", service unavailable"
-        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game, headers={"Client-ID": CLIENT_ID})
+        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game, headers={"Client-ID": CLIENT_ID, "Accept": "application/vnd.twitchtv.v5+json"})
     try:
         gamedata = r.json()
     except ValueError:
@@ -270,10 +272,10 @@ def game_ratio(game):
     count = 0  # Number of games checked
     avg = 0
     while 'streams' not in gamedata.keys():
-        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game, headers={"Client-ID": CLIENT_ID})
+        r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game, headers={"Client-ID": CLIENT_ID, "Accept": "application/vnd.twitchtv.v5+json"})
         while r.status_code != 200:
             print r.status_code, ", service unavailable"
-            r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game, headers={"Client-ID": CLIENT_ID})
+            r = requests.get('https://api.twitch.tv/kraken/streams?game=' + game, headers={"Client-ID": CLIENT_ID, "Accept": "application/vnd.twitchtv.v5+json"})
             time.sleep(1)
         try:
             gamedata = r.json()
@@ -355,11 +357,11 @@ def search_all_games():
     global global_sum
     try:
         topreq = requests.get("https://api.twitch.tv/kraken/games/top?limit=" + str(num_games),
-                              headers={"Client-ID": CLIENT_ID})
+                              headers={"Client-ID": CLIENT_ID, "Accept": "application/vnd.twitchtv.v5+json"})
         while topreq.status_code != 200:
             print "trying to get top games..."
             topreq = requests.get("https://api.twitch.tv/kraken/games/top?limit=" + str(num_games),
-                                  headers={"Client-ID": CLIENT_ID})
+                                  headers={"Client-ID": CLIENT_ID, "Accept": "application/vnd.twitchtv.v5+json"})
         topdata = topreq.json()
     except requests.exceptions.ConnectionError:
         print "connection error trying to get the game list. recursing :)))"

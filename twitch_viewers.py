@@ -24,7 +24,7 @@ def user_total_views(user):
     """
     try:
         r = requests.get("https://api.twitch.tv/kraken/search/channels?q=" + user,
-                         headers={"Client-ID": CLIENT_ID})
+                         headers={"Client-ID": CLIENT_ID, "Accept": "application/vnd.twitchtv.v5+json"})
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
@@ -34,7 +34,7 @@ def user_total_views(user):
     while r.status_code != 200:
         try:
             r = requests.get("https://api.twitch.tv/kraken/search/channels?q=" + user,
-                             headers={"Client-ID": CLIENT_ID})
+                             headers={"Client-ID": CLIENT_ID, "Accept": "application/vnd.twitchtv.v5+json"})
             break
         except (KeyboardInterrupt, SystemExit):
             raise
@@ -57,7 +57,7 @@ def user_viewers(user):
     req = 0
     try:
         req = requests.get("https://api.twitch.tv/kraken/streams/" + user,
-                           headers={"Client-ID": CLIENT_ID})
+                           headers={"Client-ID": CLIENT_ID, "Accept": "application/vnd.twitchtv.v5+json"})
     except (KeyboardInterrupt, SystemExit):
         raise
     except Exception, e:
@@ -73,6 +73,7 @@ def user_viewers(user):
             import json
             req2 = urllib2.Request("https://api.twitch.tv/kraken/streams/" + user)
             req2.add_header('Client-ID', CLIENT_ID)
+            req2.add_header('Accept', 'application/vnd.twitchtv.v5+json')
             response = urllib2.urlopen(req2)
             try:
                 userdata = json.load(response)
