@@ -7,3 +7,5 @@ expected_ratio = 0.7 #eventually tailor this to each game/channel. Tailoring to 
 num_games = 50 #number of games to look at, sorted by viewer count
 alternative_chatters_method = False  #True if you want to use faster but potentially unreliable
                                      #method of getting number of chatters for a user
+
+  
